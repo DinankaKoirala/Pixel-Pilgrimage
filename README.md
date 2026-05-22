@@ -11,3 +11,5 @@ This is a 2d platform game made as a Engineering Project
 
 4.Rhigsam Gautam
 
+5. Rachit Dhungel 
+

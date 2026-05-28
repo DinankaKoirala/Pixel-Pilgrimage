@@ -69,12 +69,12 @@ Testing/
 .cache/
 .vs/ 
  
- x 6 4 / 
+ x64/
  
- D e b u g / 
+ Debug/
  
- R e l e a s e / 
+ Release/
  
- * . u s e r 
+ *.user 
  
  

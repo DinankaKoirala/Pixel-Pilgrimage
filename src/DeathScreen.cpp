@@ -15,13 +15,13 @@ DeathScreen::DeathScreen(float width , float height)
     sf::FloatRect bounds = noButton.getLocalBounds();
     noButton.setOrigin({bounds.size.x / 2.f, bounds.size.y / 2.f});
     noButton.setPosition({width/2+120 , height/2+80});
-    noButton.setFillColor(sf::Color(168, 50, 50));
+    
 
     yesButton.setSize({100.f,50.f});
     bounds = yesButton.getLocalBounds();
     yesButton.setOrigin({bounds.size.x / 2.f, bounds.size.y / 2.f});
     yesButton.setPosition({width/2-120 , height/2+80});
-    yesButton.setFillColor(sf::Color(50, 168, 82));
+    
 
     gameOverText.setString("GAME OVER");
     gameOverText.setCharacterSize(40);
@@ -54,6 +54,21 @@ DeathScreen::DeathScreen(float width , float height)
 
 }
 void DeathScreen::draw(sf::RenderWindow& window){
+    sf::Vector2f mousePos = sf::Vector2f(sf::Mouse::getPosition(window));
+        if(yesButton.getGlobalBounds().contains(mousePos)){
+            yesButton.setFillColor(sf::Color(70, 200, 100));
+       }
+       else{
+        yesButton.setFillColor(sf::Color(50, 168, 82));
+       }
+
+       if (noButton.getGlobalBounds().contains(mousePos)){
+        noButton.setFillColor(sf::Color(200, 70, 70));
+       }
+       else{
+        noButton.setFillColor(sf::Color(168, 50, 50));
+       }
+
     window.draw(overlay);
     window.draw(gameOverText);
     window.draw(restartText);
@@ -61,6 +76,7 @@ void DeathScreen::draw(sf::RenderWindow& window){
     window.draw(yesText);
     window.draw(noButton);
     window.draw(noText);
+        
 }
 
 DeathScreenResult DeathScreen::getInput(sf::RenderWindow& window){

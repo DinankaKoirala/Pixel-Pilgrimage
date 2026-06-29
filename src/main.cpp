@@ -26,11 +26,18 @@ int main() {
 					window.close();
 				}
 			}
+			else if (const auto* mouseclick = event->getIf<sf::Event::MouseButtonPressed>() ){
+				if(mouseclick->button == sf::Mouse::Button::Left){
+					DeathScreenResult result = deathscreen.getInput(sf::Vector2f(mouseclick->position));
+						if(result == DeathScreenResult::Exit){
+							window.close();
+						}
+						else if (result == DeathScreenResult::Restart ){
+							std::cerr << "Restarted clicked" << std::endl;
+						}
+				}
+			}
 		}
-        DeathScreenResult result = deathscreen.getInput(window);
-        if (result == DeathScreenResult::Exit){
-                window.close();
-            }
 
      
             window.clear();

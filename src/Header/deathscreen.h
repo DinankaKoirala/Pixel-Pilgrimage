@@ -21,6 +21,6 @@ class DeathScreen{
     public:
     DeathScreen(float width,float height);
     void draw(sf::RenderWindow& window);
-    DeathScreenResult getInput(sf::RenderWindow& window);
+    DeathScreenResult getInput(sf::Vector2f mousepos);
 
 };

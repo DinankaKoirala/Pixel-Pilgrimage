@@ -79,15 +79,13 @@ void DeathScreen::draw(sf::RenderWindow& window){
         
 }
 
-DeathScreenResult DeathScreen::getInput(sf::RenderWindow& window){
-    if(sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)){
-        sf::Vector2f mousePos = sf::Vector2f(sf::Mouse::getPosition(window));
+DeathScreenResult DeathScreen::getInput(sf::Vector2f mousePos){
         if(yesButton.getGlobalBounds().contains(mousePos)){
             return DeathScreenResult::Restart;
        }
        else if (noButton.getGlobalBounds().contains(mousePos)){
         return DeathScreenResult::Exit;
        }
-    }
+    
         return DeathScreenResult::None;
 }

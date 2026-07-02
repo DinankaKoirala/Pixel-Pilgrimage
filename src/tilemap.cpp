@@ -18,8 +18,8 @@ bool Tilemap::loadFromImage(const std::string& path){
         row.resize(tileCountX , TileType::Air);
     }
 
-    for(int rows = 0 ; rows<tileCountY ; rows++){
-    for(int cols = 0 ; cols<tileCountX ; cols++){
+    for(unsigned int rows = 0 ; rows<tileCountY ; rows++){
+    for(unsigned int cols = 0 ; cols<tileCountX ; cols++){
             sf::Color color = image.getPixel({cols,rows});
             TileType tile = TileType::Air;
 
@@ -90,4 +90,19 @@ void Tilemap::draw(sf::RenderWindow& window) const {
             window.draw(rect);
         }
     }
+}
+
+
+std::vector<sf::FloatRect> Tilemap::getSolidTiles() const {
+    std::vector<sf::FloatRect> solids;
+    for (int rows = 0; rows < tileCountY; rows++) {
+        for (int cols = 0; cols < tileCountX; cols++) {
+            TileType tile = tileGrid[rows][cols];
+            if(tile == TileType::Grass || tile == TileType::Ground || tile == TileType::ObstacleGround || tile == TileType::Trigger){
+               sf::FloatRect rect({(float)(cols*TileSize),(float)(rows*TileSize)},{(float)TileSize, (float)TileSize});
+               solids.push_back(rect); 
+            }
+        }
+    }
+    return solids;
 }

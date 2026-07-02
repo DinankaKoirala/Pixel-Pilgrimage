@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include "Header/tilemap.h"
+#include "Header/player.h"
 
 int main()
 {
@@ -12,6 +13,10 @@ int main()
 
     Tilemap tilemap;
     tilemap.loadFromImage("/home/dinankakoirala/Desktop/Pixel-Pilgrimage/src/Resources/sprite-level1.png");
+    std::vector<sf::FloatRect> solids = tilemap.getSolidTiles();
+
+    sf::Clock clock;
+    Player player(100.f , 100.f);
 
     while (window.isOpen())
     {
@@ -21,8 +26,13 @@ int main()
                 window.close();
         }
 
+        float dt = clock.restart().asSeconds();
+        player.handleInput();
+        player.update(dt,solids);
+
         window.clear(sf::Color(40, 40, 80));
         tilemap.draw(window);
+        player.draw(window); 
         window.display();
     }
 

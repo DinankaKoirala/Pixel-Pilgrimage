@@ -13,6 +13,7 @@ FetchContent_MakeAvailable(SFML)
 add_executable(main
     src/main.cpp
     src/tilemap.cpp
+    src/player.cpp
 )
 target_include_directories(main PRIVATE headers)
 target_compile_features(main PRIVATE cxx_std_17)

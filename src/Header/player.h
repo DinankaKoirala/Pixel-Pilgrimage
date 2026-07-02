@@ -14,4 +14,5 @@ class Player{
     void update(float dt , const std::vector<sf::FloatRect>& solids);
     void draw(sf::RenderWindow& window);
     void handleInput();
+    sf::Vector2f getPosition() const;
 };

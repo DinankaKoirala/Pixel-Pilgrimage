@@ -25,5 +25,6 @@ class Tilemap{
         bool loadFromImage(const std::string& path);
         void draw(sf::RenderWindow& window) const;
         std::vector<sf::FloatRect> getSolidTiles() const;
+        
 
 };

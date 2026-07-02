@@ -17,6 +17,7 @@ int main()
 
     sf::Clock clock;
     Player player(100.f , 100.f);
+    sf::View camera(sf::FloatRect({0.f, 0.f}, {1280.f, 720.f}));
 
     while (window.isOpen())
     {
@@ -29,6 +30,9 @@ int main()
         float dt = clock.restart().asSeconds();
         player.handleInput();
         player.update(dt,solids);
+
+        camera.setCenter(player.getPosition());
+        window.setView(camera);
 
         window.clear(sf::Color(40, 40, 80));
         tilemap.draw(window);

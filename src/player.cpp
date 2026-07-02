@@ -12,7 +12,23 @@ Player::Player(float playerOriginX , float playerOriginY){
 void Player::update(float dt , const std::vector<sf::FloatRect>& solids){
 onGround = false;
 velocity.y += GRAVITY*dt;
-playerBox.move(velocity*dt);
+playerBox.move({velocity.x*dt , 0});
+
+for(const sf::FloatRect& solid : solids){
+    if(auto overlap = playerBox.getGlobalBounds().findIntersection(solid)){
+        if(velocity.x > 0){
+            playerBox.move( {-overlap->size.x , 0.f} ); 
+            velocity.x = 0;     
+        }
+
+        if(velocity.x < 0){
+            playerBox.move( {overlap->size.x , 0.f} ); 
+            velocity.x = 0;   
+        }
+    }
+}
+
+playerBox.move({0 , velocity.y*dt});
 for(const sf::FloatRect& solid : solids){
     if(auto overlap = playerBox.getGlobalBounds().findIntersection(solid)){
         if(velocity.y > 0){
@@ -22,6 +38,7 @@ for(const sf::FloatRect& solid : solids){
         }
     }
 }
+
 }
 
 void Player::draw(sf::RenderWindow& window){
@@ -36,7 +53,12 @@ void Player::handleInput() {
         velocity.x = -200.f;
 
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) && onGround) {
-        velocity.y = -70;
+        velocity.y = -140;
         onGround = false;
     }
+}
+
+
+sf::Vector2f Player::getPosition() const {
+    return playerBox.getPosition();
 }

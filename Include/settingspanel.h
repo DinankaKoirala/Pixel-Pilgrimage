@@ -7,22 +7,22 @@
 
 struct SettingsPanel {
 
-    bool visible;  // true = panel is drawn and accepts input
+    bool visible;  
 
     // Background
     sf::RectangleShape panel;
     sf::Text           title;
 
     // Sliders
-    Slider musicVol;    // Background music level
-    Slider sfxVol;      // Sound effects level
-    Slider brightness;  // Screen brightness
-    Slider contrast; //contrast
+    Slider musicVol;   
+    Slider sfxVol;     
+    Slider brightness;  
+    Slider contrast; 
 
     // Toggles
-    Toggle fullscreen;  // Fullscreen mode on/off
-    Toggle showFPS;     // FPS counter on/off
-    Toggle particles;   // Particle effects on/off
+    Toggle fullscreen;  
+    Toggle showFPS;     
+    Toggle particles;   
 
     // Difficulty row
     sf::Text diffLabel;
@@ -80,12 +80,7 @@ struct SettingsPanel {
     }
 
     
-    // handleClick()
-    //   Route a mouse click to the correct widget.
-    //   Returns true if the panel was closed (CLOSE button hit).
-    //
-    //   mp = mouse position at moment of click
-    
+
     bool handleClick(sf::Vector2f mp) {
         fullscreen.click(mp);
         showFPS.click(mp);
@@ -98,14 +93,7 @@ struct SettingsPanel {
         return false;
     }
 
-    // ---------------------------------------------------------------
-    // handleDrag()
-    //   Must be called every frame while mouse button is held.
-    //   Routes drag to all three sliders.
-    //
-    //   mouse   = current mouse position
-    //   pressed = true if left mouse button is currently held
-    // ---------------------------------------------------------------
+
     void handleDrag(sf::Vector2f mouse, bool pressed) {
         musicVol.drag(mouse, pressed);
         sfxVol.drag(mouse, pressed);

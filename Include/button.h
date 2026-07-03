@@ -30,7 +30,7 @@ class Button {
         // To center text:
    
         sf::FloatRect tb = label.getLocalBounds();
-        label.setOrigin({ tb.position.x + tb.size.x / 2.f,   // SFML 3: FloatRect uses .position/.size
+        label.setOrigin({ tb.position.x + tb.size.x / 2.f,   
                           tb.position.y + tb.size.y / 2.f });
         label.setPosition({ x + w / 2.f, y + h / 2.f });
     }

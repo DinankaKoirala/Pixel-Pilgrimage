@@ -5,7 +5,7 @@
 // Path to the background image
 constexpr const char* IMAGE_PATH = "Assets/maps.png";
 
-// Window dimensions
+
 constexpr unsigned int WIN_W = 1024;
 constexpr unsigned int WIN_H = 768;
 
@@ -94,7 +94,7 @@ int main()
     settingsHL.setPosition({ settX, settY });
     settingsHL.setFillColor(sf::Color(255, 255, 255, 30)); // Semi-transparent
     settingsHL.setOutlineColor(sf::Color::Yellow);
-    settingsHL.setOutlineThickness(0); // Hidden until mouse hovers
+    settingsHL.setOutlineThickness(0); //mouse hover
 
 
     sf::RectangleShape exitHL({ exitW, exitH });
@@ -179,21 +179,21 @@ int main()
 
    
 
-        // Clear previous frame
+        
         window.clear();
 
-        // Draw the map
+        
         window.draw(mapSprite);
 
-        // Draw highlight boxes
+        
         window.draw(settingsHL);
         window.draw(exitHL);
 
-        // Draw settings panel if it is open
+        
         if (settings.visible)
             settings.draw(window, mouse);
 
-        // Display the completed frame
+        
         window.display();
     }
 

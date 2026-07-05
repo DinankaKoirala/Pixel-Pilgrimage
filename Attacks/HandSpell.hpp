@@ -7,10 +7,10 @@
 class HandSpell {
 public:
     HandSpell(sf::Vector2f startPos, sf::Vector2f velocity)
-        : m_shape(sf::Vector2f(15.f, 15.f)), m_velocity(velocity)
+        : m_shape(sf::Vector2f(15.f, 15.f)), m_velocity(velocity), m_active(true)
     {
         m_shape.setOrigin(sf::Vector2f(7.5f, 7.5f));
-        m_shape.setFillColor(sf::Color(180, 0, 255)); // placeholder purple magic bolt
+        m_shape.setFillColor(sf::Color(180, 0, 255));
         m_shape.setPosition(startPos);
     }
 
@@ -27,7 +27,11 @@ public:
         return m_shape.getGlobalBounds();
     }
 
+    bool isActive() const { return m_active; }
+    void deactivate() { m_active = false; }
+
 private:
     sf::RectangleShape m_shape;
     sf::Vector2f m_velocity;
+    bool m_active;
 };

@@ -53,7 +53,7 @@ void Player::handleInput() {
         velocity.x = -200.f;
 
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) && onGround) {
-        velocity.y = -140;
+        velocity.y = -130;
         onGround = false;
     }
 }

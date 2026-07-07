@@ -6,7 +6,7 @@
 
 bool Tilemap::loadFromImage(const std::string& path){
     sf::Image image;
-    if(!image.loadFromFile("../src/Resources/sprite-level1.png")){
+    if(!image.loadFromFile(path)){
         return false;
     }
 
@@ -70,10 +70,12 @@ void Tilemap::draw(sf::RenderWindow& window) const {
             }
             rect.setPosition({(float)(cols*TileSize),(float)(rows*TileSize)});
             if(tile == TileType::Grass){
-            rect.setFillColor(sf::Color::Green);
+            rect.setFillColor(sf::Color::White);
+            rect.setTexture(&grassTexture);
             }
             else if (tile == TileType::Ground){
-                rect.setFillColor(sf::Color(211,211,211));
+                rect.setFillColor(sf::Color::White);
+                rect.setTexture(&stoneTexture);
             }
             else if (tile == TileType::Coin){
                 rect.setFillColor(sf::Color::Yellow);
@@ -88,6 +90,7 @@ void Tilemap::draw(sf::RenderWindow& window) const {
                 rect.setFillColor(sf::Color::Black);
             }
             window.draw(rect);
+            rect.setTexture(nullptr);
         }
     }
 }
@@ -105,4 +108,18 @@ std::vector<sf::FloatRect> Tilemap::getSolidTiles() const {
         }
     }
     return solids;
+}
+
+bool Tilemap::loadTexture(const std::string& path , const std::string Block){
+    if(Block == "Stone"){
+        if(!stoneTexture.loadFromFile(path)){
+        return false;
+        }
+    }
+    if(Block == "Grass"){
+        if(!grassTexture.loadFromFile(path)){
+        return false;
+        }
+    }
+    return true;
 }

@@ -13,6 +13,8 @@ int main()
 
     Tilemap tilemap;
     tilemap.loadFromImage("/home/dinankakoirala/Desktop/Pixel-Pilgrimage/src/Resources/sprite-level1.png");
+    tilemap.loadTexture("/home/dinankakoirala/Desktop/Pixel-Pilgrimage/src/Resources/stone.png" , "Stone");
+    tilemap.loadTexture("/home/dinankakoirala/Desktop/Pixel-Pilgrimage/src/Resources/grass.png" , "Grass");
     std::vector<sf::FloatRect> solids = tilemap.getSolidTiles();
 
     sf::Clock clock;

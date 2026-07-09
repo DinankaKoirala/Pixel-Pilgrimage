@@ -266,4 +266,3 @@ int main() {
         win.display();
     }
     return 0;
-}

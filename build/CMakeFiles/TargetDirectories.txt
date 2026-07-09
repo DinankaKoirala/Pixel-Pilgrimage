@@ -1,0 +1,3 @@
+C:/Users/Dell/Desktop/LOTUS/build/CMakeFiles/game.dir
+C:/Users/Dell/Desktop/LOTUS/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Dell/Desktop/LOTUS/build/CMakeFiles/ZERO_CHECK.dir

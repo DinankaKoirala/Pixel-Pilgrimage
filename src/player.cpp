@@ -3,46 +3,45 @@
 #include<vector>
 #include <SFML/Graphics.hpp>
 
-Player::Player(float playerOriginX , float playerOriginY){
-    playerBox.setSize({32.f,32.f});
-    playerBox.setFillColor(sf::Color::Red);
-    playerBox.setPosition({playerOriginX , playerOriginY});
+Player::Player(float playerOriginX , float playerOriginY):sprite(idleTexture){
+    hitbox = sf::FloatRect({playerOriginX,playerOriginY},{32.f,48.f});
+    sprite.setScale({0.107f, 0.12f});
 }
 
-void Player::update(float dt , const std::vector<sf::FloatRect>& solids){
-onGround = false;
-velocity.y += GRAVITY*dt;
-playerBox.move({velocity.x*dt , 0});
-
-for(const sf::FloatRect& solid : solids){
-    if(auto overlap = playerBox.getGlobalBounds().findIntersection(solid)){
-        if(velocity.x > 0){
-            playerBox.move( {-overlap->size.x , 0.f} ); 
+void Player::update(float dt, const std::vector<sf::FloatRect>& solids) {
+    onGround = false;
+    velocity.y += GRAVITY * dt;
+    hitbox.position.x += velocity.x * dt;
+    for (const sf::FloatRect& solid : solids) {
+        if (auto overlap = hitbox.findIntersection(solid)) {
+            if(velocity.x > 0){
+            hitbox.position.x += -overlap->size.x ; 
             velocity.x = 0;     
-        }
+            }
+            if(velocity.x<0){
+                hitbox.position.x += overlap->size.x ;
+                velocity.x = 0;
+            }
 
-        if(velocity.x < 0){
-            playerBox.move( {overlap->size.x , 0.f} ); 
-            velocity.x = 0;   
-        }
-    }
-}
-
-playerBox.move({0 , velocity.y*dt});
-for(const sf::FloatRect& solid : solids){
-    if(auto overlap = playerBox.getGlobalBounds().findIntersection(solid)){
-        if(velocity.y > 0){
-            playerBox.move( {0.f , -overlap->size.y} ); 
-            velocity.y = 0;  
-            onGround = true;   
         }
     }
-}
 
+    hitbox.position.y += velocity.y * dt;
+    for (const sf::FloatRect& solid : solids) {
+        if (auto overlap = hitbox.findIntersection(solid)) {
+            if(velocity.y > 0){
+                hitbox.position.y += -overlap->size.y; 
+                velocity.y = 0;  
+                onGround = true;   
+            }
+        }
+    }
+
+    sprite.setPosition(hitbox.position);
 }
 
 void Player::draw(sf::RenderWindow& window){
-    window.draw(playerBox);
+    window.draw(sprite);
 }
 
 void Player::handleInput() {
@@ -60,5 +59,13 @@ void Player::handleInput() {
 
 
 sf::Vector2f Player::getPosition() const {
-    return playerBox.getPosition();
+    return hitbox.position;
+}
+
+bool Player::loadTextures(){
+    if(!idleTexture.loadFromFile("../src/Resources/idle.png" )){
+        return false;
+    }
+    sprite.setTexture(idleTexture, true);
+    return true;
 }

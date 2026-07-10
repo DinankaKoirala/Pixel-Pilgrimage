@@ -4,7 +4,9 @@
 
 class Player{
     private:
-    sf::RectangleShape playerBox;
+    sf::FloatRect hitbox;
+    sf::Texture idleTexture;
+    sf::Sprite sprite;
     sf::Vector2f velocity;
     static constexpr float GRAVITY = 200;
     bool onGround = false;
@@ -15,4 +17,5 @@ class Player{
     void draw(sf::RenderWindow& window);
     void handleInput();
     sf::Vector2f getPosition() const;
+    bool loadTextures();
 };

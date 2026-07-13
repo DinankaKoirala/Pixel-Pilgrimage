@@ -12,6 +12,9 @@ Player::Player(float playerOriginX , float playerOriginY):sprite(idleTexture){
 void Player::update(float dt, const std::vector<sf::FloatRect>& solids) {
     onGround = false;
     velocity.y += GRAVITY * dt;
+    if (velocity.y > 100) {
+       velocity.y = 100;
+    }
     hitbox.position.x += velocity.x * dt;
     for (const sf::FloatRect& solid : solids) {
         if (auto overlap = hitbox.findIntersection(solid)) {

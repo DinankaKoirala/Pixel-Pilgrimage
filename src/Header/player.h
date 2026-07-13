@@ -8,7 +8,7 @@ class Player{
     sf::Texture idleTexture;
     sf::Sprite sprite;
     sf::Vector2f velocity;
-    static constexpr float GRAVITY = 300;
+    static constexpr float GRAVITY = 225;
     bool onGround = false;
 
     public:

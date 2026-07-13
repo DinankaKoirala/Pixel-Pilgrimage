@@ -11,20 +11,24 @@ void Enemy::draw(sf::RenderWindow& window){
 }
 
 sf::Vector2f Enemy::getPosition() const{
-    return {enemyOriginX,enemyOriginY};
+    return hitbox.position;
 }
-void Enemy::update( float dt , const std::vector<sf::FloatRect>& solid){
-    for (const sf:FloatRect& solid : solids){
+void Enemy::update( float dt , const std::vector<sf::FloatRect>& solids){
+
+    float velocityX = speed * (movingRight ? 1.f : -1.f);
+    hitbox.position.x += velocityX * dt;
+    
+   for (const sf::FloatRect& solid : solids) {
         if (auto overlap = hitbox.findIntersection(solid)) {
-            if(velocity.x > 0){
-            hitbox.position.x += -overlap->size.x ; 
-            speed = 0;     
-            }
-            if(velocity.x<0){
-                hitbox.position.x += overlap->size.x ;
-                speed = 0;
+            if (movingRight) {
+                hitbox.position.x -= overlap->size.x;
+                movingRight = false;
+            } else {
+                hitbox.position.x += overlap->size.x;
+                movingRight = true;
             }
         }
     }
-    enemyShape.move({speed , 0});
+
+    enemyShape.setPosition(hitbox.position);
 }

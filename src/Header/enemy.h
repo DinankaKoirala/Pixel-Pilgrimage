@@ -11,7 +11,7 @@
 
     public:
     Enemy(float enemyOriginX , float enemyOriginY);
-    void update( float dt , const std::vector<sf::FloatRect>& solid);
+    void update( float dt , const std::vector<sf::FloatRect>& solids);
     void draw(sf::RenderWindow& window);
     sf::Vector2f getPosition() const;
  };

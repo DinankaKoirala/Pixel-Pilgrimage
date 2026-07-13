@@ -2,6 +2,7 @@
 #include <optional>
 #include "Header/tilemap.h"
 #include "Header/player.h"
+#include"Header/enemy.h"
 #include<iostream>
 
 int main()
@@ -31,6 +32,12 @@ int main()
 
     sf::Clock clock;
     sf::View camera(sf::FloatRect({0.f, 0.f}, {1280.f, 720.f}));
+    std::vector<sf::Vector2f> enemySpawns = tilemap.getEnemySpawnPoints();
+    std::vector<Enemy> enemies;
+    for(const sf::Vector2f& enemyPos :enemySpawns){
+         Enemy enemy(enemyPos.x , enemyPos.y);
+         enemies.push_back(enemy);   
+        }
 
     while (window.isOpen())
     {
@@ -43,6 +50,9 @@ int main()
         float dt = clock.restart().asSeconds();
         player.handleInput();
         player.update(dt,solids);
+        for(Enemy& enemy :enemies){
+            enemy.update(dt,solids);
+        }
 
         camera.setCenter(player.getPosition());
         window.setView(camera);
@@ -50,6 +60,9 @@ int main()
         window.clear(sf::Color(40, 40, 80));
         tilemap.draw(window);
         player.draw(window); 
+        for(Enemy& enemy :enemies){
+            enemy.draw(window);
+        }
         window.display();
     }
 

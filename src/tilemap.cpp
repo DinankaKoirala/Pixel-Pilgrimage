@@ -65,7 +65,7 @@ void Tilemap::draw(sf::RenderWindow& window) const {
     for(int rows = 0 ; rows < tileCountY ; rows++){
         for(int cols = 0 ; cols < tileCountX ; cols++){
             TileType tile = tileGrid[rows][cols];
-            if(tile == TileType::Air){
+            if(tile == TileType::Air || tile == TileType::Enemy || tile == TileType::PlayerSpawn){
                 continue;
             }
             rect.setPosition({(float)(cols*TileSize),(float)(rows*TileSize)});
@@ -86,7 +86,7 @@ void Tilemap::draw(sf::RenderWindow& window) const {
             else if (tile == TileType::Trigger){
                 rect.setFillColor(sf::Color::Red);
             }
-            else{
+            else {
                 rect.setFillColor(sf::Color::Black);
             }
             window.draw(rect);
@@ -122,4 +122,18 @@ bool Tilemap::loadTexture(const std::string& path , const std::string Block){
         }
     }
     return true;
+}
+
+std::vector<sf::Vector2f> Tilemap::getEnemySpawnPoints() const{
+    std::vector<sf::Vector2f> enemyPos;
+    for (int rows = 0; rows < tileCountY; rows++) {
+        for (int cols = 0; cols < tileCountX; cols++) {
+            TileType tile = tileGrid[rows][cols];
+            if(tile == TileType::Enemy){
+                enemyPos.push_back({(float)(cols*TileSize),(float)(rows*TileSize)});
+            }
+        
+    }
+        }
+return enemyPos;
 }

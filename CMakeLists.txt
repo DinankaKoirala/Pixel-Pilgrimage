@@ -12,6 +12,7 @@ add_executable(main
     src/main.cpp
     src/player.cpp
     src/tilemap.cpp
+    src/enemy.cpp
 )
 
 target_include_directories(main PRIVATE src/Header)

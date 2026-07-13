@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
 
 add_executable(game main.cpp src/level4.cpp)
-target_include_directories(game PRIVATE src)
 
 target_link_libraries(game PRIVATE SFML::Graphics SFML::Window SFML::System)
 
@@ -30,3 +29,5 @@ add_custom_command(TARGET game POST_BUILD
         "$<TARGET_FILE:SFML::Graphics>"
         "$<TARGET_FILE_DIR:game>"
     COMMENT "Copying SFML DLLs to build directory")
+
+

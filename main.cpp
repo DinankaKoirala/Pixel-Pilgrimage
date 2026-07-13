@@ -6,12 +6,21 @@
 #include <algorithm>
 
 // ── utils ─────────────────────────────────────────────────────────────────────
-static void R(sf::RenderTarget& t,float x,float y,float w,float h,sf::Color c){
-    sf::RectangleShape s({w,h});s.setFillColor(c);s.setPosition({x,y});t.draw(s);}
-static void R(sf::RenderWindow& t,float x,float y,float w,float h,sf::Color c){
-    sf::RectangleShape s({w,h});s.setFillColor(c);s.setPosition({x,y});t.draw(s);}
-static void C(sf::RenderWindow& w,float cx,float cy,float r,sf::Color c,int pts=20){
-    sf::CircleShape s(r,pts);s.setFillColor(c);s.setOrigin({r,r});s.setPosition({cx,cy});w.draw(s);}
+static void R(sf::RenderTarget& t,float x,float y,float w,float h,sf::Color c,const sf::RenderStates& st=sf::RenderStates::Default){
+    sf::RectangleShape s({w,h});s.setFillColor(c);s.setPosition({x,y});t.draw(s,st);}
+static void R(sf::RenderWindow& t,float x,float y,float w,float h,sf::Color c,const sf::RenderStates& st=sf::RenderStates::Default){
+    sf::RectangleShape s({w,h});s.setFillColor(c);s.setPosition({x,y});t.draw(s,st);}
+static void C(sf::RenderWindow& w,float cx,float cy,float r,sf::Color c,int pts=20,const sf::RenderStates& st=sf::RenderStates::Default){
+    sf::CircleShape s(r,pts);s.setFillColor(c);s.setOrigin({r,r});s.setPosition({cx,cy});w.draw(s,st);}
+
+// smoothstep easing — used to ease entities in/out smoothly instead of popping
+static float smooth01(float t){t=std::clamp(t,0.f,1.f);return t*t*(3.f-2.f*t);}
+// build a RenderStates that scales everything drawn with it about (ax,ay),
+// used to make spawning entities grow in cleanly rather than appearing instantly
+static sf::RenderStates scaleAbout(float ax,float ay,float s){
+    sf::Transform tr;
+    tr.translate({ax,ay}).scale({s,s}).translate({-ax,-ay});
+    sf::RenderStates st; st.transform=tr; return st;}
 
 static constexpr float SW=800.f,SH=480.f;
 static constexpr float BASE_SPEED=140.f;
@@ -178,23 +187,27 @@ public:
 // ── COIN ─────────────────────────────────────────────────────────────────────
 class Coin{
 public:
-    float x,y; bool collected=false; float sparkT=0;
+    float x,y; bool collected=false; float sparkT=0; float ageT=0;
     Coin(float sx,float sy):x(sx),y(sy){}
-    void update(float dt,float spd){x-=spd*dt; sparkT+=dt;}
+    void update(float dt,float spd){x-=spd*dt; sparkT+=dt; ageT+=dt;}
     float drawY()const{return y;}  // sits flat on ground
     void draw(sf::RenderWindow&w){
         if(collected)return;
         float cy=drawY();
+        // smooth grow-in when the coin first appears, instead of popping in
+        float s=smooth01(ageT/0.28f);
+        if(s<=0.f)return;
+        sf::RenderStates st=scaleAbout(x,cy,s);
         // sparkle glow
         sf::Color glowC(255,220,60,(uint8_t)(100+50*std::sin(sparkT*5.f)));
-        R(w,x-13,cy-13,26,26,glowC);
+        R(w,x-13,cy-13,26,26,glowC,st);
         sf::Color out(20,18,5),gold(240,185,20),shine(255,215,80),hi(255,240,140),dk(190,130,10);
-        R(w,x-8,cy-10,16,2,out); R(w,x-10,cy-8,20,16,out); R(w,x-8,cy+6,16,2,out);
-        R(w,x-10,cy-8,2,16,out); R(w,x+8,cy-8,2,16,out);
-        R(w,x-8,cy-8,16,16,gold);
-        R(w,x-6,cy-10,12,2,gold); R(w,x-6,cy+8,12,2,gold);
-        R(w,x-6,cy-6,4,12,shine); R(w,x-2,cy-8,3,4,hi); R(w,x-2,cy-6,3,10,shine);
-        R(w,x+4,cy-6,4,12,dk);}
+        R(w,x-8,cy-10,16,2,out,st); R(w,x-10,cy-8,20,16,out,st); R(w,x-8,cy+6,16,2,out,st);
+        R(w,x-10,cy-8,2,16,out,st); R(w,x+8,cy-8,2,16,out,st);
+        R(w,x-8,cy-8,16,16,gold,st);
+        R(w,x-6,cy-10,12,2,gold,st); R(w,x-6,cy+8,12,2,gold,st);
+        R(w,x-6,cy-6,4,12,shine,st); R(w,x-2,cy-8,3,4,hi,st); R(w,x-2,cy-6,3,10,shine,st);
+        R(w,x+4,cy-6,4,12,dk,st);}
     // bounds at ground position
     sf::FloatRect bounds()const{float cy=drawY();return{{x-9.f,cy-11.f},{18.f,22.f}};}
 };
@@ -220,110 +233,119 @@ public:
 class DeerEnemy{
 public:
     float x; bool active=false,passed=false,dead=false;
-    float runT=0;
+    float runT=0, spawnT=0;
     static constexpr float SPD_MULT=1.8f; // runs toward player
     static constexpr float W=70,H=80;
 
-    void spawn(){x=SW+20;active=true;passed=false;dead=false;runT=0;}
+    void spawn(){x=SW+20;active=true;passed=false;dead=false;runT=0;spawnT=0;}
     void update(float dt,float gameSpd){
         if(!active)return;
         x-=(gameSpd*SPD_MULT)*dt; // comes FROM right toward left (player)
-        runT+=dt*10.f;
+        runT+=dt*10.f; spawnT+=dt;
         if(x<-100){active=false;}}
     void draw(sf::RenderWindow&w){
         if(!active)return;
         float base=groundYat(x);
-        drawDeer(w,x,base,true);}
+        // ease the deer in with a gentle grow, so it doesn't just pop into view
+        float s=smooth01(spawnT/0.4f);
+        if(s<=0.f)return;
+        sf::RenderStates st=scaleAbout(x,base,s);
+        drawDeer(w,x,base,true,st);}
     sf::FloatRect bounds()const{float base=groundYat(x);return{{x-30,base-H},{60,H}};}
 
 private:
     sf::Color body{155,102,60},belly{195,162,120},dark{108,68,35},antl{130,88,45};
     sf::Color nose{200,100,80},scarf{200,30,30},scarfD{155,18,18},spot{185,152,115};
 
-    void drawDeer(sf::RenderWindow&w,float cx,float base,bool flip){
+    void drawDeer(sf::RenderWindow&w,float cx,float base,bool flip,const sf::RenderStates&st){
         float f=flip?-1.f:1.f; // flipped — facing left
         // legs running
         float ls=std::sin(runT)*12.f;
-        R(w,cx+f*(-18),(int)(base-28+ls),5,28,dark); R(w,cx+f*(-6),(int)(base-28-ls),5,28,dark);
-        R(w,cx+f*(6), (int)(base-28-ls),5,28,dark);  R(w,cx+f*(16),(int)(base-28+ls),5,28,dark);
+        R(w,cx+f*(-18),(int)(base-28+ls),5,28,dark,st); R(w,cx+f*(-6),(int)(base-28-ls),5,28,dark,st);
+        R(w,cx+f*(6), (int)(base-28-ls),5,28,dark,st);  R(w,cx+f*(16),(int)(base-28+ls),5,28,dark,st);
         // body
-        R(w,cx-22,base-70,48,42,body); R(w,cx-16,base-68,36,30,body);
-        R(w,cx-12,base-58,28,18,belly);
-        for(int i=0;i<4;++i)R(w,cx-10+i*8,base-62,4,4,spot);
+        R(w,cx-22,base-70,48,42,body,st); R(w,cx-16,base-68,36,30,body,st);
+        R(w,cx-12,base-58,28,18,belly,st);
+        for(int i=0;i<4;++i)R(w,cx-10+i*8,base-62,4,4,spot,st);
         // tail (on right since flipped left)
-        R(w,cx+20,base-68,8,10,belly);
+        R(w,cx+20,base-68,8,10,belly,st);
         // neck + head (facing LEFT since coming toward player)
-        R(w,cx+f*14,base-80,14,24,body);
-        R(w,cx+f*12,base-98,22,20,body);
-        R(w,cx+f*24,base-94,10,10,belly);
-        R(w,cx+f*30,base-90,5,5,nose);
+        R(w,cx+f*14,base-80,14,24,body,st);
+        R(w,cx+f*12,base-98,22,20,body,st);
+        R(w,cx+f*24,base-94,10,10,belly,st);
+        R(w,cx+f*30,base-90,5,5,nose,st);
         // angry eye
-        R(w,cx+f*16,base-96,4,4,{20,15,12});
-        R(w,cx+f*16,base-100,8,3,dark); // angry brow
+        R(w,cx+f*16,base-96,4,4,{20,15,12},st);
+        R(w,cx+f*16,base-100,8,3,dark,st); // angry brow
         // antlers
-        R(w,cx+f*18,base-100,3,18,antl);
-        R(w,cx+f*10,base-96,10,3,antl); R(w,cx+f*10,base-100,3,6,antl);
-        R(w,cx+f*22,base-96,8,3,antl);  R(w,cx+f*26,base-100,3,6,antl);
+        R(w,cx+f*18,base-100,3,18,antl,st);
+        R(w,cx+f*10,base-96,10,3,antl,st); R(w,cx+f*10,base-100,3,6,antl,st);
+        R(w,cx+f*22,base-96,8,3,antl,st);  R(w,cx+f*26,base-100,3,6,antl,st);
         // scarf
-        R(w,cx+f*12,base-78,16,7,scarf); R(w,cx+f*22,base-76,5,10,scarfD);}
+        R(w,cx+f*12,base-78,16,7,scarf,st); R(w,cx+f*22,base-76,5,10,scarfD,st);}
 };
 
 // ── GIANT ENEMY ──────────────────────────────────────────────────────────────
 class Giant{
 public:
-    float x; bool active=false,passed=false; float walkT=0;
-    static constexpr float W=48,H=56;
+    float x; bool active=false,passed=false; float walkT=0, spawnT=0;
+    // Smaller hitbox than before so the player can clearly jump over the yeti
+    static constexpr float W=32,H=36;
 
-    void spawn(){x=SW+20;active=true;passed=false;walkT=0;}
+    void spawn(){x=SW+20;active=true;passed=false;walkT=0;spawnT=0;}
     void update(float dt,float gameSpd){
         if(!active)return;
-        x-=gameSpd*1.2f*dt; walkT+=dt*6.f;
+        x-=gameSpd*1.2f*dt; walkT+=dt*6.f; spawnT+=dt;
         if(x<-120)active=false;}
     void draw(sf::RenderWindow&w){
         if(!active)return;
         float base=groundYat(x);
-        drawGiant(w,x,base);}
-    sf::FloatRect bounds()const{float base=groundYat(x);return{{x-18,base-H},{36,H}};}
+        // ease the yeti in with a gentle grow instead of an abrupt pop-in
+        float s=smooth01(spawnT/0.45f);
+        if(s<=0.f)return;
+        sf::RenderStates st=scaleAbout(x,base,s);
+        drawGiant(w,x,base,st);}
+    sf::FloatRect bounds()const{float base=groundYat(x);return{{x-W/2.f,base-H},{W,H}};}
 
 private:
-    void drawGiant(sf::RenderWindow&w,float cx,float base){
-        float sc=0.55f;
+    void drawGiant(sf::RenderWindow&w,float cx,float base,const sf::RenderStates&st){
+        float sc=0.4f; // shrunk down so its body height matches the smaller hitbox
         sf::Color bdy(185,195,205),blight(215,225,232),bdark(145,155,165);
         sf::Color skin(220,185,150),eye_c(200,80,20),pupil(20,12,8);
         sf::Color cloth(120,75,45),club(130,85,40),clubDk(90,55,25);
         sf::Color metal(100,110,120),mlight(140,150,160);
 
         float lb=std::sin(walkT)*8.f*sc;
-        R(w,cx-22*sc,(int)(base-38*sc+lb),18*sc,38*sc,bdy); R(w,cx+4*sc,(int)(base-38*sc-lb),18*sc,38*sc,bdy);
-        R(w,cx-24*sc,(int)(base-4*sc+lb),20*sc,6*sc,bdark);R(w,cx+2*sc,(int)(base-4*sc-lb),20*sc,6*sc,bdark);
-        R(w,cx-28*sc,base-45*sc,56*sc,14*sc,cloth);
-        R(w,cx-32*sc,base-100*sc,64*sc,58*sc,bdy);
-        R(w,cx-28*sc,base-104*sc,56*sc,10*sc,bdy);
-        R(w,cx-20*sc,base-90*sc,40*sc,36*sc,blight);
-        C(w,cx,base-72*sc,18*sc,{200,215,225});
-        C(w,cx,base-72*sc,12*sc,{185,200,215});
-        R(w,cx+26*sc,base-92*sc,16*sc,38*sc,bdy);
-        R(w,cx+28*sc,base-56*sc,14*sc,22*sc,bdy);
-        R(w,cx+30*sc,base-42*sc,10*sc,32*sc,club);
-        R(w,cx+24*sc,base-76*sc,22*sc,14*sc,clubDk);
-        R(w,cx+22*sc,base-84*sc,26*sc,12*sc,club);
-        R(w,cx+20*sc,base-88*sc,28*sc,8*sc,blight);
-        R(w,cx+25*sc,base-70*sc,18*sc,8*sc,metal); R(w,cx+26*sc,base-69*sc,16*sc,6*sc,mlight);
-        R(w,cx-42*sc,base-92*sc,16*sc,34*sc,bdy);
-        R(w,cx-14*sc,base-108*sc,28*sc,12*sc,bdy);
-        R(w,cx-28*sc,base-140*sc,56*sc,36*sc,bdy);
-        R(w,cx-24*sc,base-148*sc,48*sc,14*sc,bdy);
-        R(w,cx-20*sc,base-150*sc,40*sc,8*sc,bdy);
-        R(w,cx-22*sc,base-136*sc,18*sc,5*sc,bdark); R(w,cx+4*sc,base-136*sc,18*sc,5*sc,bdark);
-        R(w,cx-20*sc,base-130*sc,12*sc,8*sc,eye_c); R(w,cx+8*sc,base-130*sc,12*sc,8*sc,eye_c);
-        R(w,cx-16*sc,base-130*sc,6*sc,6*sc,{230,100,30}); R(w,cx+10*sc,base-130*sc,6*sc,6*sc,{230,100,30});
-        R(w,cx-14*sc,base-128*sc,4*sc,4*sc,pupil); R(w,cx+12*sc,base-128*sc,4*sc,4*sc,pupil);
-        R(w,cx-14*sc,base-118*sc,28*sc,14*sc,blight);
-        R(w,cx-10*sc,base-116*sc,20*sc,10*sc,{210,185,170});
-        R(w,cx-8*sc,base-112*sc,5*sc,4*sc,bdark); R(w,cx+3*sc,base-112*sc,5*sc,4*sc,bdark);
-        R(w,cx-30*sc,base-140*sc,8*sc,14*sc,bdy); R(w,cx+22*sc,base-140*sc,8*sc,14*sc,bdy);
-        R(w,cx-28*sc,base-138*sc,4*sc,8*sc,skin); R(w,cx+24*sc,base-138*sc,4*sc,8*sc,skin);
-        R(w,cx-10*sc,base-152*sc,8*sc,6*sc,blight); R(w,cx+2*sc,base-152*sc,8*sc,6*sc,blight);}
+        R(w,cx-22*sc,(int)(base-38*sc+lb),18*sc,38*sc,bdy,st); R(w,cx+4*sc,(int)(base-38*sc-lb),18*sc,38*sc,bdy,st);
+        R(w,cx-24*sc,(int)(base-4*sc+lb),20*sc,6*sc,bdark,st);R(w,cx+2*sc,(int)(base-4*sc-lb),20*sc,6*sc,bdark,st);
+        R(w,cx-28*sc,base-45*sc,56*sc,14*sc,cloth,st);
+        R(w,cx-32*sc,base-100*sc,64*sc,58*sc,bdy,st);
+        R(w,cx-28*sc,base-104*sc,56*sc,10*sc,bdy,st);
+        R(w,cx-20*sc,base-90*sc,40*sc,36*sc,blight,st);
+        C(w,cx,base-72*sc,18*sc,{200,215,225},20,st);
+        C(w,cx,base-72*sc,12*sc,{185,200,215},20,st);
+        R(w,cx+26*sc,base-92*sc,16*sc,38*sc,bdy,st);
+        R(w,cx+28*sc,base-56*sc,14*sc,22*sc,bdy,st);
+        R(w,cx+30*sc,base-42*sc,10*sc,32*sc,club,st);
+        R(w,cx+24*sc,base-76*sc,22*sc,14*sc,clubDk,st);
+        R(w,cx+22*sc,base-84*sc,26*sc,12*sc,club,st);
+        R(w,cx+20*sc,base-88*sc,28*sc,8*sc,blight,st);
+        R(w,cx+25*sc,base-70*sc,18*sc,8*sc,metal,st); R(w,cx+26*sc,base-69*sc,16*sc,6*sc,mlight,st);
+        R(w,cx-42*sc,base-92*sc,16*sc,34*sc,bdy,st);
+        R(w,cx-14*sc,base-108*sc,28*sc,12*sc,bdy,st);
+        R(w,cx-28*sc,base-140*sc,56*sc,36*sc,bdy,st);
+        R(w,cx-24*sc,base-148*sc,48*sc,14*sc,bdy,st);
+        R(w,cx-20*sc,base-150*sc,40*sc,8*sc,bdy,st);
+        R(w,cx-22*sc,base-136*sc,18*sc,5*sc,bdark,st); R(w,cx+4*sc,base-136*sc,18*sc,5*sc,bdark,st);
+        R(w,cx-20*sc,base-130*sc,12*sc,8*sc,eye_c,st); R(w,cx+8*sc,base-130*sc,12*sc,8*sc,eye_c,st);
+        R(w,cx-16*sc,base-130*sc,6*sc,6*sc,{230,100,30},st); R(w,cx+10*sc,base-130*sc,6*sc,6*sc,{230,100,30},st);
+        R(w,cx-14*sc,base-128*sc,4*sc,4*sc,pupil,st); R(w,cx+12*sc,base-128*sc,4*sc,4*sc,pupil,st);
+        R(w,cx-14*sc,base-118*sc,28*sc,14*sc,blight,st);
+        R(w,cx-10*sc,base-116*sc,20*sc,10*sc,{210,185,170},st);
+        R(w,cx-8*sc,base-112*sc,5*sc,4*sc,bdark,st); R(w,cx+3*sc,base-112*sc,5*sc,4*sc,bdark,st);
+        R(w,cx-30*sc,base-140*sc,8*sc,14*sc,bdy,st); R(w,cx+22*sc,base-140*sc,8*sc,14*sc,bdy,st);
+        R(w,cx-28*sc,base-138*sc,4*sc,8*sc,skin,st); R(w,cx+24*sc,base-138*sc,4*sc,8*sc,skin,st);
+        R(w,cx-10*sc,base-152*sc,8*sc,6*sc,blight,st); R(w,cx+2*sc,base-152*sc,8*sc,6*sc,blight,st);}
 };
 
 // ── PLAYER ───────────────────────────────────────────────────────────────────
@@ -559,13 +581,26 @@ int main(){
             for(auto&g:giants) if(g.active) yetiOnScreen=true;
             player.setYetiMode(yetiOnScreen);
 
-            // Coins spawn above ground
+            // Coins spawn on the running ground only, at random intervals
             coinTimer+=dt;
             if(coinTimer>=coinNext){
-                coinTimer=0;coinNext=std::uniform_real_distribution<float>(2.f,5.f)(rng);
-                float cx=SW+30.f;
-                float cy=groundYat(cx)-12.f;
-                coins.emplace_back(cx,cy);}
+                coinTimer=0;coinNext=std::uniform_real_distribution<float>(2.2f,5.5f)(rng);
+                // don't spawn coins right on top of an incoming obstacle
+                bool blocked=false;
+                for(auto&r:rocks) if(r.x>SW-30.f) blocked=true;
+                for(auto&d:deerEnemies) if(d.active&&d.x>SW-50.f) blocked=true;
+                for(auto&g:giants) if(g.active&&g.x>SW-50.f) blocked=true;
+                if(!blocked){
+                    // random small cluster (1-3 coins) with random spacing/height jitter
+                    std::uniform_int_distribution<int> clusterDist(1,3);
+                    std::uniform_real_distribution<float> gapDist(24.f,38.f);
+                    std::uniform_real_distribution<float> jitterDist(-3.f,3.f);
+                    int n=clusterDist(rng);
+                    float cx=SW+30.f;
+                    for(int i=0;i<n;++i){
+                        float cy=groundYat(cx)-12.f+jitterDist(rng);
+                        coins.emplace_back(cx,cy);
+                        cx+=gapDist(rng);}}}
             for(auto&c:coins)c.update(dt,spd);
             coins.erase(std::remove_if(coins.begin(),coins.end(),[](const Coin&c){return c.x<-30||c.collected;}),coins.end());
 

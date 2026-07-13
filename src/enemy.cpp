@@ -15,6 +15,10 @@ sf::Vector2f Enemy::getPosition() const{
 }
 void Enemy::update( float dt , const std::vector<sf::FloatRect>& solids){
 
+     float probeX = movingRight ? hitbox.position.x + hitbox.size.x + 5.f : hitbox.position.x - 5.f;
+    float probeY = hitbox.position.y + hitbox.size.y + 6.f;
+    sf::Vector2f probePoint = {probeX, probeY};
+
     float velocityX = speed * (movingRight ? 1.f : -1.f);
     hitbox.position.x += velocityX * dt;
     
@@ -29,6 +33,30 @@ void Enemy::update( float dt , const std::vector<sf::FloatRect>& solids){
             }
         }
     }
+    bool groundAhead = false;
+    for (const sf::FloatRect& solid : solids) {
+        if (solid.contains(probePoint)) {
+            groundAhead = true;
+            break;
+        }
+    }
+        if (!groundAhead) {
+            if(!movingRight){
+                movingRight = true;
+            }
+            else{
+                movingRight=false;
+            }
+        }
 
     enemyShape.setPosition(hitbox.position);
+}
+
+sf::FloatRect Enemy::getEnemyHitbox() const{
+    return hitbox;
+}
+
+void Enemy::reset(float spawnX, float spawnY){
+    hitbox.position = {spawnX , spawnY};
+    movingRight = true;
 }

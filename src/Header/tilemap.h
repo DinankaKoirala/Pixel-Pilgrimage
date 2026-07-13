@@ -28,5 +28,6 @@ class Tilemap{
         std::vector<sf::FloatRect> getSolidTiles() const;
         bool loadTexture(const std::string& path, const std::string Block);
         std::vector<sf::Vector2f> getEnemySpawnPoints() const;
+        sf::Vector2f getPlayerSpawnPoint() const;
 
 };

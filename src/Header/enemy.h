@@ -6,7 +6,7 @@
     private:
     sf::FloatRect hitbox;
     sf::RectangleShape enemyShape;
-    float speed=3.f;
+    float speed=20.f;
     bool movingRight = true;
 
     public:
@@ -14,4 +14,6 @@
     void update( float dt , const std::vector<sf::FloatRect>& solids);
     void draw(sf::RenderWindow& window);
     sf::Vector2f getPosition() const;
+    sf::FloatRect getEnemyHitbox() const;
+    void reset(float spawnX, float spawnY);
  };

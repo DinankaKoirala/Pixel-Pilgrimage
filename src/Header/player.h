@@ -8,7 +8,7 @@ class Player{
     sf::Texture idleTexture;
     sf::Sprite sprite;
     sf::Vector2f velocity;
-    static constexpr float GRAVITY = 250;
+    static constexpr float GRAVITY = 300;
     bool onGround = false;
 
     public:
@@ -18,4 +18,6 @@ class Player{
     void handleInput();
     sf::Vector2f getPosition() const;
     bool loadTextures();
+    sf::FloatRect getPlayerHitbox() const;
+    void reset(float spawnX, float spawnY);
 };

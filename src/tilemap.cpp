@@ -133,7 +133,20 @@ std::vector<sf::Vector2f> Tilemap::getEnemySpawnPoints() const{
                 enemyPos.push_back({(float)(cols*TileSize),(float)(rows*TileSize)});
             }
         
-    }
         }
+    }
 return enemyPos;
+}
+
+sf::Vector2f Tilemap::getPlayerSpawnPoint() const{
+    for (int rows = 0; rows < tileCountY; rows++) {
+        for (int cols = 0; cols < tileCountX; cols++) {
+            TileType tile = tileGrid[rows][cols];
+            if(tile == TileType::PlayerSpawn){
+                return {(float)(cols*TileSize),(float)(rows*TileSize)};
+            }
+        
+        }
+    }
+    return {100.f , 100.f};
 }

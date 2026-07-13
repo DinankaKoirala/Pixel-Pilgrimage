@@ -1,4 +1,5 @@
 #include"Header/player.h"
+#include"Header/tilemap.h"
 
 #include<vector>
 #include <SFML/Graphics.hpp>
@@ -46,12 +47,12 @@ void Player::draw(sf::RenderWindow& window){
 
 void Player::handleInput() {
     velocity.x = 0.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) )
         velocity.x = 200.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) )
         velocity.x = -200.f;
 
-     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) && onGround) {
+     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) && onGround == true) {
         velocity.y = -130;
         onGround = false;
     }
@@ -68,4 +69,13 @@ bool Player::loadTextures(){
     }
     sprite.setTexture(idleTexture, true);
     return true;
+}
+sf::FloatRect Player::getPlayerHitbox() const{
+    return hitbox;
+}
+
+void Player::reset(float spawnX, float spawnY){
+    hitbox.position = {spawnX , spawnY};
+    velocity = {0.f ,0.f};
+    onGround = false;
 }

@@ -25,11 +25,13 @@ int main()
     }
     std::vector<sf::FloatRect> solids = tilemap.getSolidTiles();
 
-     Player player(100.f , 100.f);
+    sf::Vector2f playerSpawn = tilemap.getPlayerSpawnPoint();
+    Player player(playerSpawn.x, playerSpawn.y);
      if(!player.loadTextures()){
         std::cout << "Failed to load player textures!" << std::endl;
      }
 
+     bool playerAlive = true;
     sf::Clock clock;
     sf::View camera(sf::FloatRect({0.f, 0.f}, {1280.f, 720.f}));
     std::vector<sf::Vector2f> enemySpawns = tilemap.getEnemySpawnPoints();
@@ -48,12 +50,28 @@ int main()
         }
 
         float dt = clock.restart().asSeconds();
-        player.handleInput();
-        player.update(dt,solids);
-        for(Enemy& enemy :enemies){
-            enemy.update(dt,solids);
+        if(playerAlive){
+            player.handleInput();
+            player.update(dt,solids);
+            for(Enemy& enemy :enemies){
+                enemy.update(dt,solids);
+            }
+            for (Enemy& enemy : enemies) {
+                if (auto overlap = player.getPlayerHitbox().findIntersection(enemy.getEnemyHitbox())) {
+                    playerAlive = false;
+                }
+            }
         }
 
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::R)){
+            player.reset(playerSpawn.x, playerSpawn.y);
+            for (size_t i = 0; i < enemies.size(); i++) {
+                enemies[i].reset(enemySpawns[i].x, enemySpawns[i].y);
+            }   
+                playerAlive = true;
+        }
+        
         camera.setCenter(player.getPosition());
         window.setView(camera);
 

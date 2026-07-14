@@ -17,10 +17,10 @@ int main()
     if(!tilemap.loadFromImage("../src/Resources/sprite-level1.png")){
         std::cout << "Failed to load sprite-level1!" << std::endl;
     }
-    if(!tilemap.loadTexture("../src/Resources/stone.png", "Stone")){
+    if(!tilemap.loadTexture("../src/Resources/dirt_tile.png", "Stone")){
         std::cout << "Failed to load stone textures!" << std::endl;
     }
-    if(!tilemap.loadTexture("../src/Resources/grass.png", "Grass")){
+    if(!tilemap.loadTexture("../src/Resources/grass_tile.png", "Grass")){
         std::cout << "Failed to load Grass textures!" << std::endl;
     }
     std::vector<sf::FloatRect> solids = tilemap.getSolidTiles();
@@ -72,7 +72,7 @@ int main()
                 playerAlive = true;
         }
         
-        camera.setCenter(player.getPosition());
+        camera.setCenter({player.getPosition().x, 360.f});
         window.setView(camera);
 
         window.clear(sf::Color(40, 40, 80));

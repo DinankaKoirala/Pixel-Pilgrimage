@@ -1,13 +1,27 @@
 #include"Header/enemy.h"
 
-Enemy::Enemy(float enemyOriginX , float enemyOriginY){
-hitbox = sf::FloatRect({enemyOriginX,enemyOriginY},{32,32}); 
-enemyShape.setSize({32,32});
-enemyShape.setPosition({enemyOriginX,enemyOriginY});
-enemyShape.setFillColor(sf::Color::White);
+Enemy::Enemy(float enemyOriginX , float enemyOriginY):sprite(enemyTexture){
+hitbox = sf::FloatRect({enemyOriginX,enemyOriginY},{64,32}); 
+}
+bool Enemy::loadTextures(const std::string& path){
+    if(!enemyTexture.loadFromFile(path)){
+        return false;
+    }
+    sprite.setTexture(enemyTexture, true);
+    sprite.setTextureRect(sf::IntRect({0, 0}, {64, 64}));
+    sprite.setScale({1.5f, 1.5f});
+    return true;
 }
 void Enemy::draw(sf::RenderWindow& window){
-    window.draw(enemyShape);
+    sprite.setPosition({hitbox.position.x-16.f, hitbox.position.y - 33.f});
+    window.draw(sprite);
+
+    /*   SEE HITBOX FOR DEBUG
+        sf::RectangleShape debug({hitbox.size.x, hitbox.size.y});
+        debug.setPosition(hitbox.position);
+        debug.setFillColor(sf::Color(255, 0, 0, 80));
+        window.draw(debug);
+    */
 }
 
 sf::Vector2f Enemy::getPosition() const{
@@ -48,8 +62,6 @@ void Enemy::update( float dt , const std::vector<sf::FloatRect>& solids){
                 movingRight=false;
             }
         }
-
-    enemyShape.setPosition(hitbox.position);
 }
 
 sf::FloatRect Enemy::getEnemyHitbox() const{

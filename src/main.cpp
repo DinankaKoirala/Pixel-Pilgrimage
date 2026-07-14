@@ -44,6 +44,11 @@ int main()
          Enemy enemy(enemyPos.x , enemyPos.y);
          enemies.push_back(enemy);   
         }
+        for(Enemy& enemy : enemies) {
+            if(!enemy.loadTextures("../src/Resources/rhino_sheet.png")) {
+                std::cout << "Failed to load enemy texture!" << std::endl;
+            }
+        }
 
         Background background;
         background.loadTexture("../src/Resources/background.png");
@@ -83,7 +88,7 @@ int main()
                 playerAlive = true;
         }
         if(player.getPosition().x <= window.getSize().x / 2.f){
-            camera.setCenter({width / 2.f, 360.f});
+            camera.setCenter({1280/2.f, 360.f});
             window.setView(camera);
         }
         else {

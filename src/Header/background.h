@@ -12,4 +12,4 @@ class Background{
     Background();
     bool loadTexture(const std::string& path);
     void draw(sf::RenderWindow& window , float cameraPosX);   
-}
+};

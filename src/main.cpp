@@ -3,12 +3,16 @@
 #include "Header/tilemap.h"
 #include "Header/player.h"
 #include"Header/enemy.h"
+#include"Header/background.h"
 #include<iostream>
 
 int main()
 {
+    unsigned int width = 1280;
+    unsigned int height = 720;
+
     sf::RenderWindow window(
-        sf::VideoMode({ 1280, 720 }),
+        sf::VideoMode({ width, height }),
         "Pixel Pilgrimage"
     );
     window.setFramerateLimit(60);
@@ -41,6 +45,10 @@ int main()
          enemies.push_back(enemy);   
         }
 
+        Background background;
+        background.loadTexture("../src/Resources/background.png");
+
+
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
@@ -60,6 +68,9 @@ int main()
                 if (auto overlap = player.getPlayerHitbox().findIntersection(enemy.getEnemyHitbox())) {
                     playerAlive = false;
                 }
+                if(player.getPosition().y + 32 >= 720){
+                    playerAlive = false;
+                }
             }
         }
 
@@ -71,11 +82,17 @@ int main()
             }   
                 playerAlive = true;
         }
-        
-        camera.setCenter({player.getPosition().x, 360.f});
-        window.setView(camera);
+        if(player.getPosition().x <= window.getSize().x / 2.f){
+            camera.setCenter({width / 2.f, 360.f});
+            window.setView(camera);
+        }
+        else {
+            camera.setCenter({player.getPosition().x, 360.f});
+            window.setView(camera);
+        }
 
-        window.clear(sf::Color(40, 40, 80));
+        window.clear();
+        background.draw(window , camera.getCenter().x);
         tilemap.draw(window);
         player.draw(window); 
         for(Enemy& enemy :enemies){

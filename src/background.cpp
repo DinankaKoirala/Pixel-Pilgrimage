@@ -1,3 +1,11 @@
+#include"Header/background.h"
+#include<SFML/Graphics.hpp>
+
+
+Background::Background():sprite(BackgroundTexture){
+
+}
+
 bool Background::loadTexture(const std::string& path){
     if(!BackgroundTexture.loadFromFile(path)){
         return false;

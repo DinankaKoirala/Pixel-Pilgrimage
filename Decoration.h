@@ -28,8 +28,23 @@ public:
 
     void updateParallax(float cameraX) // When camera moves.. far objects move slower than near objects
     {
-        sprite.setPosition({ basePos.x + cameraX * (1.f - factor), basePos.y });
+        sprite.setPosition({
+            basePos.x + cameraX * (1.f - factor) + animOffset.x,
+            basePos.y + animOffset.y
+            });
+        sprite.setRotation(sf::degrees(animRotationDeg));
     }
+
+    // Hook for subclasses that want independent motion (swaying, bobbing,
+    // drifting, looping...) on top of the parallax position above.
+    // Base Decoration does nothing here, so plain hills/trees/sun/etc. are
+    // completely unaffected - only animated subclasses need to write to
+    // animOffset / animRotationDeg.
+    virtual void animate(float dt) {}
+
+protected:
+    sf::Vector2f animOffset{ 0.f, 0.f }; // extra positional offset, added on top of parallax
+    float animRotationDeg = 0.f;          // extra rotation, in degrees
 
 private:
     sf::Vector2f basePos;

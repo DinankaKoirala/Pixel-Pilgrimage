@@ -26,6 +26,9 @@ bool DecorationManager::loadTextures(const std::string& assetsPath)
     if (!sunTex.loadFromFile(assetsPath + "sun.png"))   return false;
     if (!birdTex.loadFromFile(assetsPath + "bird.png")) return false;
 
+    if (!butterflyTex.loadFromFile(assetsPath + "butterfly.png")) return false;
+    if (!grassTex.loadFromFile(assetsPath + "grass.png"))         return false;
+
     return true;
 }
 
@@ -36,6 +39,8 @@ void DecorationManager::build(float levelEnd)
     clouds.clear();
     sky.clear();
     birds.clear();
+    butterflies.clear();
+    grass.clear();
 
     const float groundY = 600.f;
     const float hillGroundY = 470.f;
@@ -51,7 +56,7 @@ void DecorationManager::build(float levelEnd)
     for (float tx = -450.f; tx < levelEnd; tx += 260.f)
     {
         int variant = rand() % 3;
-        trees.push_back(std::make_unique<Decoration>(
+        trees.push_back(std::make_unique<SwayingTree>(
             treeTex[variant], sf::Vector2f(tx, treeGroundY), 0.55f));
     }
 
@@ -72,7 +77,7 @@ void DecorationManager::build(float levelEnd)
 
         int variant = rand() % 3;
         float cy = cloudHeights[cloudSlot % 3];
-        clouds.push_back(std::make_unique<Decoration>(
+        clouds.push_back(std::make_unique<DriftingCloud>(
             cloudTex[variant], sf::Vector2f(cx, cy), 0.1f));
         cloudSlot++;
     }
@@ -87,26 +92,59 @@ void DecorationManager::build(float levelEnd)
     for (float bx = -350.f; bx < levelEnd; bx += 350.f)
     {
         float by = birdHeights[birdSlot % 4];
-        birds.push_back(std::make_unique<Decoration>(
-            birdTex, sf::Vector2f(bx, by), 0.2f, true, 1.f));
+        birds.push_back(std::make_unique<FlappingBird>(
+            birdTex, sf::Vector2f(bx, by), 0.2f, 1.f));
         birdSlot++;
+    }
+
+    // Butterflies: a handful scattered near ground level, looping in place
+    // rather than tiled densely like the other layers.
+    const float butterflyHeights[3] = { groundY - 60.f, groundY - 90.f, groundY - 40.f };
+    int butterflySlot = 0;
+    for (float fx = -300.f; fx < levelEnd; fx += 600.f)
+    {
+        float fy = butterflyHeights[butterflySlot % 3];
+        butterflies.push_back(std::make_unique<Butterfly>(
+            butterflyTex, sf::Vector2f(fx, fy), 0.6f, 0.5f));
+        butterflySlot++;
+    }
+
+    // Foreground grass: tufts right along the ground line, parallax factor
+    // > 1 so they scroll slightly faster than the player - i.e. they're
+    // rendered "closer" to the camera than everything else. Drawn separately
+    // via drawForeground() so they land in front of the player sprite.
+    for (float gx = -500.f; gx < levelEnd; gx += 90.f)
+    {
+        grass.push_back(std::make_unique<WavingGrass>(
+            grassTex, sf::Vector2f(gx, groundY), 1.15f));
     }
 }
 
-void DecorationManager::update(float cameraX)
+void DecorationManager::update(float cameraX, float dt)
 {
-    for (auto& s : sky)    s->updateParallax(cameraX);
-    for (auto& b : birds)  b->updateParallax(cameraX);
-    for (auto& c : clouds) c->updateParallax(cameraX);
-    for (auto& h : hills)  h->updateParallax(cameraX);
-    for (auto& t : trees)  t->updateParallax(cameraX);
+    // animate() first (sway/bob/drift/loop set animOffset & animRotationDeg),
+    // then updateParallax() applies both the camera-driven position AND
+    // whatever animate() just computed.
+    for (auto& s : sky) { s->animate(dt); s->updateParallax(cameraX); }
+    for (auto& b : birds) { b->animate(dt); b->updateParallax(cameraX); }
+    for (auto& f : butterflies) { f->animate(dt); f->updateParallax(cameraX); }
+    for (auto& c : clouds) { c->animate(dt); c->updateParallax(cameraX); }
+    for (auto& h : hills) { h->animate(dt); h->updateParallax(cameraX); }
+    for (auto& t : trees) { t->animate(dt); t->updateParallax(cameraX); }
+    for (auto& g : grass) { g->animate(dt); g->updateParallax(cameraX); }
 }
 
 void DecorationManager::draw(sf::RenderWindow& window)
 {
-    for (auto& s : sky)    s->draw(window);
-    for (auto& b : birds)  b->draw(window);
-    for (auto& c : clouds) c->draw(window);
-    for (auto& h : hills)  h->draw(window);
-    for (auto& t : trees)  t->draw(window);
+    for (auto& s : sky)         s->draw(window);
+    for (auto& b : birds)       b->draw(window);
+    for (auto& f : butterflies) f->draw(window);
+    for (auto& c : clouds)      c->draw(window);
+    for (auto& h : hills)       h->draw(window);
+    for (auto& t : trees)       t->draw(window);
+}
+
+void DecorationManager::drawForeground(sf::RenderWindow& window)
+{
+    for (auto& g : grass) g->draw(window);
 }

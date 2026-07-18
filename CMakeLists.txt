@@ -16,17 +16,24 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 endif()
 
 # ---------------------------------------
-# Download SFML automatically
+# Use installed SFML if available, otherwise fetch it
 # ---------------------------------------
-include(FetchContent)
+find_package(SFML 3 COMPONENTS Graphics Window System QUIET)
 
-FetchContent_Declare(
-    SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 3.1.0
-)
+if(SFML_FOUND)
+    message(STATUS "Using installed SFML (version ${SFML_VERSION})")
+else()
+    message(STATUS "SFML not found locally, fetching via FetchContent")
+    include(FetchContent)
 
-FetchContent_MakeAvailable(SFML)
+    FetchContent_Declare(
+        SFML
+        GIT_REPOSITORY https://github.com/SFML/SFML.git
+        GIT_TAG 3.1.0
+    )
+
+    FetchContent_MakeAvailable(SFML)
+endif()
 
 # ---------------------------------------
 

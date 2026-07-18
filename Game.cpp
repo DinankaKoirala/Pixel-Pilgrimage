@@ -8,7 +8,7 @@
 Game::Game()
     : window(sf::VideoMode({ 1280u, 720u }), "Night Bridge Level")
     , view(sf::FloatRect({ 0.f, 0.f }, { 1280.f, 720.f }))
-    , assetsPath(R"(C:\\Users\\Dell\\Documents\\level 2 practice\\level 2 practice\\level 2 practice\\assets\\)")
+	, assetsPath("assets/")
     , background(bgTex)
     , player(sf::Vector2f(150.f, 550.f))
 {
@@ -151,7 +151,7 @@ void Game::update(float dt)
             [](const auto& star) { return star->getBounds().position.x < -900.f; }),
         ninjaStars.end());
 
-    decorations.update(cameraX); // back to this, no dt needed anymore
+    decorations.update(cameraX, dt); // dt now drives sway/bob/drift/loop animations
 }
 
 void Game::checkCrackTriggers()
@@ -237,5 +237,7 @@ void Game::render()
     }
 
     player.draw(window);
+    decorations.drawForeground(window); // grass renders in front of the player
+
     window.display();
 }

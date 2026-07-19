@@ -33,7 +33,7 @@ private:
     sf::View view;
     std::string assetsPath;
 
-    sf::Texture bgTex, blockTex, crackedTex, starTex, playerTex;
+    sf::Texture bgTex, blockTex, crackedTex, starTex;
     sf::Sprite background;
 
     std::vector<std::unique_ptr<Platform>> platforms;

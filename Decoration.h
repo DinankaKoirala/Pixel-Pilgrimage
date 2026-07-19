@@ -11,7 +11,11 @@ public:
     // that sit "on" a ground line (hills, trees, clouds resting on a horizon).
     // centerOrigin = true: anchors by the exact center, for floating sky
     // objects like the sun/moon/birds that aren't resting on anything.
-    Decoration(const sf::Texture& texture, sf::Vector2f basePosition, float parallaxFactor, bool centerOrigin = false, float scale = 1.f)
+    // scaleX: optional separate horizontal scale, for objects that need to
+    // be squeezed narrower/wider without affecting height (e.g. a trunk
+    // that should look thinner under its tree). Leave at -1.f (default) to
+    // keep the old uniform behavior - scale is used for both axes.
+    Decoration(const sf::Texture& texture, sf::Vector2f basePosition, float parallaxFactor, bool centerOrigin = false, float scale = 1.f, float scaleX = -1.f)
         : GameObject(texture, basePosition)
         , basePos(basePosition)
         , factor(parallaxFactor)
@@ -22,7 +26,8 @@ public:
         else
             sprite.setOrigin({ bounds.size.x / 2.f, bounds.size.y });
 
-        sprite.setScale({ scale, scale });
+        float finalScaleX = (scaleX >= 0.f) ? scaleX : scale;
+        sprite.setScale({ finalScaleX, scale });
         sprite.setPosition(basePosition);
     }
 

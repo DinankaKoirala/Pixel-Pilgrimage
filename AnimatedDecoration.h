@@ -62,60 +62,6 @@ private:
     const float tiltAmount = 8.f;  // degrees
 };
 
-// Loose, looping drift near ground level - a lissajous-style path (different
-// x/y frequencies) so it doesn't read as an obvious perfect circle.
-class Butterfly : public Decoration
-{
-public:
-    Butterfly(const sf::Texture& texture, sf::Vector2f basePosition, float parallaxFactor, float scale = 1.f)
-        : Decoration(texture, basePosition, parallaxFactor, true, scale)
-        , phaseX(static_cast<float>(std::rand() % 1000) / 1000.f * 6.283f)
-        , phaseY(static_cast<float>(std::rand() % 1000) / 1000.f * 6.283f)
-    {
-    }
-
-    void animate(float dt) override
-    {
-        elapsed += dt;
-        animOffset.x = std::sin(elapsed * speedX + phaseX) * radiusX;
-        animOffset.y = std::cos(elapsed * speedY + phaseY) * radiusY;
-    }
-
-private:
-    float elapsed = 0.f;
-    float phaseX;
-    float phaseY;
-    const float speedX = 1.1f;
-    const float speedY = 1.6f;
-    const float radiusX = 35.f; // pixels
-    const float radiusY = 18.f; // pixels
-};
-
-// Fast, twitchy rotation sway, meant for a foreground layer (parallax
-// factor > 1 so it scrolls slightly faster than the player, in front of
-// everything else).
-class WavingGrass : public Decoration
-{
-public:
-    WavingGrass(const sf::Texture& texture, sf::Vector2f basePosition, float parallaxFactor, float scale = 1.f)
-        : Decoration(texture, basePosition, parallaxFactor, false, scale) // bottom-center origin - roots stay put
-        , phase(static_cast<float>(std::rand() % 1000) / 1000.f * 6.283f)
-    {
-    }
-
-    void animate(float dt) override
-    {
-        elapsed += dt;
-        animRotationDeg = std::sin(elapsed * waveSpeed + phase) * waveAmount;
-    }
-
-private:
-    float elapsed = 0.f;
-    float phase;
-    const float waveSpeed = 2.5f; // faster/twitchier than the tree sway
-    const float waveAmount = 5.f; // degrees
-};
-
 // Slow, independent horizontal drift plus a gentle vertical bob, so the sky
 // feels alive even when the camera isn't moving. Direction/speed randomized
 // per cloud so they don't all drift the same way.

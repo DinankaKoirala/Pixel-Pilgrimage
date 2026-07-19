@@ -41,7 +41,7 @@ void createLevel(
                     crackedTex,
                     sf::Vector2f(x, groundY)));
 
-            float heights[] = { 510.f, 560.f, 550.f };
+            float heights[] = { 500.f, 560.f, 560.f };
             float starY = heights[rand() % 3];
 
             starSpawner.addSpawnPoint(

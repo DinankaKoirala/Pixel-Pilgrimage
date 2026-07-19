@@ -16,24 +16,22 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 endif()
 
 # ---------------------------------------
-# Use installed SFML if available, otherwise fetch it
+# Always fetch SFML via FetchContent, built fresh with the same compiler
+# you're using for this project (MSVC). Deliberately NOT using
+# find_package() here - on this machine it was picking up an SFML that had
+# been installed via MSYS2 (built for MinGW/GCC), whose headers use GCC-only
+# syntax that MSVC can't parse, causing hundreds of unrelated-looking
+# "syntax error" messages in system headers like stdio.h/math.h.
 # ---------------------------------------
-find_package(SFML 3 COMPONENTS Graphics Window System QUIET)
+include(FetchContent)
 
-if(SFML_FOUND)
-    message(STATUS "Using installed SFML (version ${SFML_VERSION})")
-else()
-    message(STATUS "SFML not found locally, fetching via FetchContent")
-    include(FetchContent)
+FetchContent_Declare(
+    SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG 3.1.0
+)
 
-    FetchContent_Declare(
-        SFML
-        GIT_REPOSITORY https://github.com/SFML/SFML.git
-        GIT_TAG 3.1.0
-    )
-
-    FetchContent_MakeAvailable(SFML)
-endif()
+FetchContent_MakeAvailable(SFML)
 
 # ---------------------------------------
 

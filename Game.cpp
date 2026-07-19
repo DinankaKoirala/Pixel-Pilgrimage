@@ -8,7 +8,7 @@
 Game::Game()
     : window(sf::VideoMode({ 1280u, 720u }), "Night Bridge Level")
     , view(sf::FloatRect({ 0.f, 0.f }, { 1280.f, 720.f }))
-	, assetsPath("assets/")
+    , assetsPath("assets/")
     , background(bgTex)
     , player(sf::Vector2f(150.f, 550.f))
 {
@@ -39,7 +39,8 @@ bool Game::loadAssets()
     if (!blockTex.loadFromFile(assetsPath + "block.png"))       return false;
     if (!crackedTex.loadFromFile(assetsPath + "woodcrack.png")) return false;
     if (!starTex.loadFromFile(assetsPath + "ninjastar.png"))    return false;
-    if (!playerTex.loadFromFile(assetsPath + "p.png"))          return false;
+
+    if (!player.loadTextures(assetsPath)) return false;
 
     if (!decorations.init(assetsPath, levelEnd)) return false;
 
@@ -237,7 +238,6 @@ void Game::render()
     }
 
     player.draw(window);
-    decorations.drawForeground(window); // grass renders in front of the player
 
     window.display();
 }

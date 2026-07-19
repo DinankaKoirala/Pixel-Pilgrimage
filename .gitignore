@@ -9,6 +9,7 @@ Release/
 *.ilk
 *.pdb
 *.exe
+CMakeLists.txt
 
 build/
 out/

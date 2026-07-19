@@ -3,7 +3,8 @@
 #include<vector>
 #include <SFML/Graphics.hpp>
 
-Player::Player(float playerOriginX , float playerOriginY):sprite(idleTexture){
+Player::Player(float playerOriginX , float playerOriginY,AudioManager& audio):sprite(idleTexture), audio(audio)
+{
     hitbox = sf::FloatRect({playerOriginX,playerOriginY},{32.f,48.f});
     sprite.setScale({0.107f, 0.12f});
 }
@@ -49,14 +50,19 @@ void Player::draw(sf::RenderWindow& window){
 
 void Player::handleInput() {
     velocity.x = 0.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) )
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) ){
         velocity.x = 200.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) )
+        audio.playSFXIfNotPlaying("footstep");
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) ){
         velocity.x = -200.f;
+        audio.playSFXIfNotPlaying("footstep");
+    }
 
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) && onGround == true) {
         velocity.y = -130;
         onGround = false;
+        audio.playSFX("jump");
     }
 }
 

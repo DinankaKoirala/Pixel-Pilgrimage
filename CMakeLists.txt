@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(SFML_DIR "C:/Users/Desktop-LOQ/Documents/libaries/SFML-3.1.0/lib/cmake/SFML")
 
-find_package(SFML REQUIRED COMPONENTS Graphics)
+find_package(SFML REQUIRED COMPONENTS Graphics Audio)
 
 add_executable(main
     src/main.cpp
@@ -14,11 +14,13 @@ add_executable(main
     src/tilemap.cpp
     src/enemy.cpp
     src/background.cpp
+    src/audioManager.cpp
 )
 
 target_include_directories(main PRIVATE src/Header)
 
 target_link_libraries(main PRIVATE SFML::Graphics)
+target_link_libraries(main PRIVATE SFML::Audio)
 
 # Automatically copy all SFML DLLs after building
 add_custom_command(TARGET main POST_BUILD

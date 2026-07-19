@@ -17,6 +17,13 @@ int main()
     );
     window.setFramerateLimit(60);
 
+    AudioManager audio;
+    audio.loadSFX("jump", "../src/assets/jump.mp3");
+    audio.loadSFX("hurt", "../src/assets/hurt.mp3");
+    audio.loadSFX("footstep", "../src/assets/footstep.mp3");
+    //audio.loadMusic("assets/bgm.ogg");
+    //audio.playMusic();
+
     Tilemap tilemap;
     if(!tilemap.loadFromImage("../src/Resources/sprite-level1.png")){
         std::cout << "Failed to load sprite-level1!" << std::endl;
@@ -30,7 +37,7 @@ int main()
     std::vector<sf::FloatRect> solids = tilemap.getSolidTiles();
 
     sf::Vector2f playerSpawn = tilemap.getPlayerSpawnPoint();
-    Player player(playerSpawn.x, playerSpawn.y);
+    Player player(playerSpawn.x, playerSpawn.y,audio);
      if(!player.loadTextures()){
         std::cout << "Failed to load player textures!" << std::endl;
      }
@@ -43,7 +50,7 @@ int main()
     for(const sf::Vector2f& enemyPos :enemySpawns){
          Enemy enemy(enemyPos.x , enemyPos.y);
          enemies.push_back(enemy);   
-        }
+    }
         for(Enemy& enemy : enemies) {
             if(!enemy.loadTextures("../src/Resources/rhino_sheet.png")) {
                 std::cout << "Failed to load enemy texture!" << std::endl;
@@ -52,6 +59,8 @@ int main()
 
         Background background;
         background.loadTexture("../src/Resources/background.png");
+
+    
 
 
     while (window.isOpen())
@@ -72,9 +81,11 @@ int main()
             for (Enemy& enemy : enemies) {
                 if (auto overlap = player.getPlayerHitbox().findIntersection(enemy.getEnemyHitbox())) {
                     playerAlive = false;
+                    audio.playSFX("hurt");
                 }
                 if(player.getPosition().y + 32 >= 720){
                     playerAlive = false;
+                    audio.playSFX("hurt");
                 }
             }
         }

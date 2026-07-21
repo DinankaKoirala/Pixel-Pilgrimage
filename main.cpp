@@ -16,6 +16,37 @@
 #include "ParticleSystem.hpp"
 #include "Aura.hpp"
 
+// Player's collision box, smaller than the full sprite frame. Each run-cycle
+// frame is a fixed-size box with a lot of transparent padding around the
+// actual character (space above the head, around the backpack, below the
+// feet) -- using the raw sprite bounds as the hitbox makes hits trigger on
+// empty space. Tune the *_Frac values below to make hits feel fair: smaller
+// box = more forgiving for the player, larger = stricter.
+sf::FloatRect getPlayerHitbox(const sf::Sprite& sprite)
+{
+    sf::FloatRect local = sprite.getLocalBounds(); // full frame, in texture pixels
+
+    const float insetLeftFrac = 0.40f;   // trim 30% off the left edge
+    const float insetRightFrac = 0.40f;  // trim 30% off the right edge
+    const float insetTopFrac = 0.30f;    // trim 15% off the top (hair/crown)
+    const float insetBottomFrac = 0.05f; // trim 5% off the bottom
+
+    float trimLeft = local.size.x * insetLeftFrac;
+    float trimRight = local.size.x * insetRightFrac;
+    float trimTop = local.size.y * insetTopFrac;
+    float trimBottom = local.size.y * insetBottomFrac;
+
+    sf::FloatRect shrunk(
+        { local.position.x + trimLeft, local.position.y + trimTop },
+        { local.size.x - trimLeft - trimRight, local.size.y - trimTop - trimBottom }
+    );
+
+    // Transform from local (frame-space) to world space using the sprite's
+    // current position/scale, so the hitbox follows movement and the
+    // left/right flip correctly.
+    return sprite.getTransform().transformRect(shrunk);
+}
+
 class Fireball
 {
 public:
@@ -111,8 +142,35 @@ int main()
 
     sf::Sprite player(playerTexture);
 
+    // --- Run-cycle sprite sheet setup ---
+    // Assumes Data/prince.png is a 6-column x 2-row grid of 12 run frames,
+    // read left-to-right then wrapping to the next row (frame 1 at top-left,
+    // frame 12 at bottom-right) -- matching the reference sheet. If your
+    // actual file uses a different layout (e.g. a single row of 12, or a
+    // different frame count), just change playerFrameCols/playerFrameRows
+    // below to match.
+    const int playerFrameCols = 6;
+    const int playerFrameRows = 2;
+    const int playerFrameCount = playerFrameCols * playerFrameRows;
+
+    sf::Vector2u princeTexSize = playerTexture.getSize();
+    int playerFrameW = static_cast<int>(princeTexSize.x) / playerFrameCols;
+    int playerFrameH = static_cast<int>(princeTexSize.y) / playerFrameRows;
+
+    int playerAnimFrame = 0;
+    float playerAnimTimer = 0.f;
+    // Time each frame stays on screen -- lower = faster run cycle. Tune to taste.
+    const float playerAnimFrameDuration = 0.09f;
+    bool playerFacingLeft = false; // sheet's default orientation faces right
+
+    player.setTextureRect(sf::IntRect({ 0, 0 }, { playerFrameW, playerFrameH }));
+
     player.setPosition({ 0.f, 400.f * sy });
-    player.setScale({ 0.05f * sx, 0.05f * sy });
+    // NOTE: this scale was tuned for the old single-pose image. Since it now
+    // scales a single FRAME of the sheet (not the whole sheet), the on-screen
+    // size may look different -- adjust this value if the character looks
+    // too big/small once you drop in the real spritesheet.
+    player.setScale({ 0.25f * sx, 0.25f * sy });
 
     float playerSpeed = 300.f * sx;
     float velocityY = 0.f;
@@ -133,7 +191,7 @@ int main()
     // Original orb was a 20.f-radius circle (40.f diameter) in design space.
     // Scale the sprite to match that same footprint, then apply sx/sy like
     // everything else so it stays consistent across screen resolutions.
-    const float orbDesignDiameter = 400.f;
+    const float orbDesignDiameter = 40.f;
     orb.setScale({
         (orbDesignDiameter * sx) / orbTexSize.x,
         (orbDesignDiameter * sy) / orbTexSize.y
@@ -210,7 +268,7 @@ int main()
 
         // Subtle background drift: slow, small sine pan within the overscan
         // margin, so nothing ever reveals a hard edge.
-        float bgOffsetX = std::sin(ambientTime * 0.15f) * bgMarginX;
+        float bgOffsetX = std::sin(ambientTime * 0.0f) * bgMarginX;
         float bgOffsetY = std::cos(ambientTime * 0.11f) * (bgMarginY * 0.5f);
         background.setPosition({ -bgMarginX + bgOffsetX, -bgMarginY + bgOffsetY });
 
@@ -224,14 +282,17 @@ int main()
         {
             sf::Vector2f pos = player.getPosition();
 
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) ||
-                sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+            bool movingLeft = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) ||
+                sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left);
+            bool movingRight = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) ||
+                sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
+
+            if (movingLeft)
             {
                 pos.x -= playerSpeed * dt;
             }
 
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) ||
-                sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+            if (movingRight)
             {
                 pos.x += playerSpeed * dt;
             }
@@ -257,6 +318,56 @@ int main()
                 onGround = true;
             }
             player.setPosition(pos);
+
+            // --- Run-cycle animation ---
+            bool isMoving = movingLeft || movingRight;
+
+            if (isMoving)
+            {
+                playerAnimTimer += dt;
+                while (playerAnimTimer >= playerAnimFrameDuration)
+                {
+                    playerAnimTimer -= playerAnimFrameDuration;
+                    playerAnimFrame = (playerAnimFrame + 1) % playerFrameCount;
+                }
+            }
+            else
+            {
+                // No idle frame in this sheet -- just hold on the first pose.
+                playerAnimFrame = 0;
+                playerAnimTimer = 0.f;
+            }
+
+            {
+                int col = playerAnimFrame % playerFrameCols;
+                int row = playerAnimFrame / playerFrameCols;
+                int rectX = col * playerFrameW;
+                int rectY = row * playerFrameH;
+
+                // Sheet faces right by default. Keep facing whichever
+                // direction was last actually moved (so idle doesn't
+                // reset facing), and flip via a negative-width texture
+                // rect -- this mirrors the image only, leaving the
+                // sprite's position/origin untouched (a negative scale
+                // would flip around the origin and cause a visible jump).
+                if (movingLeft && !movingRight)
+                    playerFacingLeft = true;
+                else if (movingRight && !movingLeft)
+                    playerFacingLeft = false;
+
+                if (playerFacingLeft)
+                {
+                    player.setTextureRect(sf::IntRect(
+                        { rectX + playerFrameW, rectY },
+                        { -playerFrameW, playerFrameH }));
+                }
+                else
+                {
+                    player.setTextureRect(sf::IntRect(
+                        { rectX, rectY },
+                        { playerFrameW, playerFrameH }));
+                }
+            }
 
             spawnTimer += dt;
 
@@ -308,7 +419,7 @@ int main()
 
             dm.update(dt);
             monk.update(dt, player.getPosition());
-            auto playerBounds = player.getGlobalBounds();
+            auto playerBounds = getPlayerHitbox(player);
 
             for (auto& fb : fireballs)
             {
@@ -346,15 +457,7 @@ int main()
                 dm.reset();
                 monk.reset();
             }
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::J))
-            {
-                gameOver = true;
-                window.close();
-
-            
-            }
         }
-
 
         // Runs after monk.update() above so the aura tracks this frame's
         // staff-tip position rather than lagging one frame behind.

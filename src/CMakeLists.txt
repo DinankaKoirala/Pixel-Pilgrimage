@@ -4,7 +4,6 @@ project(PixelPilgrimage LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SFML_DIR "/opt/homebrew/lib/cmake/SFML")
 find_package(SFML REQUIRED COMPONENTS Graphics Audio)
 
 add_executable(PixelPilgrimage
@@ -29,3 +28,25 @@ add_executable(PixelPilgrimage_level2
 )
 target_include_directories(PixelPilgrimage_level2 PRIVATE level-2/src)
 target_link_libraries(PixelPilgrimage_level2 PRIVATE SFML::Graphics SFML::Audio)
+
+add_custom_command(TARGET PixelPilgrimage_level2 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${PROJECT_SOURCE_DIR}/level-2/assets"
+    "$<TARGET_FILE_DIR:PixelPilgrimage_level2>/assets"
+)
+
+if(WIN32)
+    get_filename_component(SFML_ROOT "${SFML_DIR}" DIRECTORY)
+    get_filename_component(SFML_ROOT "${SFML_ROOT}" DIRECTORY)
+    get_filename_component(SFML_ROOT "${SFML_ROOT}" DIRECTORY)
+    add_custom_command(TARGET PixelPilgrimage POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${SFML_ROOT}/bin"
+        "$<TARGET_FILE_DIR:PixelPilgrimage>"
+    )
+    add_custom_command(TARGET PixelPilgrimage_level2 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${SFML_ROOT}/bin"
+        "$<TARGET_FILE_DIR:PixelPilgrimage_level2>"
+    )
+endif()

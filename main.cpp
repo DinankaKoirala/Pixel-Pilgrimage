@@ -10,11 +10,14 @@
 #include <algorithm>
 #include <optional>
 #include <iostream>
+#include <string>
 #include <windows.h>
 #include "dripstone.h"
 #include "Monk.hpp"
 #include "ParticleSystem.hpp"
 #include "Aura.hpp"
+#include "timer.h"
+#include "HealthBar.hpp"
 
 // Player's collision box, smaller than the full sprite frame. Each run-cycle
 // frame is a fixed-size box with a lot of transparent padding around the
@@ -241,17 +244,38 @@ int main()
     Aura staffAura(sf::Color(190, 120, 255), 16.f * sx);
     bool gameOver = false;
     sf::Font font;
-    bool fontLoaded = font.openFromFile("Data/Roboto-Medium.ttf");
+    bool fontLoaded = font.openFromFile("Data/OptimusPrinceps.ttf");
+    if (!fontLoaded)
+        fontLoaded = font.openFromFile("Data/Roboto-Medium.ttf");
 
     sf::Text gameOverText(font);
 
     if (fontLoaded)
     {
-        gameOverText.setString("GAME OVER - Press R to Restart");
-        gameOverText.setCharacterSize(36);
-        gameOverText.setFillColor(sf::Color::Red);
-        gameOverText.setPosition({ 150.f, 50.f });
+        gameOverText.setString("GAME OVER");
+        gameOverText.setCharacterSize(196);
+        gameOverText.setFillColor(sf::Color(255, 215, 0));
+        gameOverText.setOutlineColor(sf::Color(80, 40, 0));
+        gameOverText.setOutlineThickness(2.f);
+        sf::FloatRect tb = gameOverText.getLocalBounds();
+        gameOverText.setOrigin({ tb.size.x / 2.f, tb.size.y / 2.f });
+        gameOverText.setPosition({ static_cast<float>(win_l) / 2.f, static_cast<float>(win_b) / 2.f });
     }
+    Timer survivalTimer(20.f);
+    survivalTimer.start();
+
+    sf::Text timerText(font);
+    if (fontLoaded)
+    {
+        timerText.setCharacterSize(24);
+        timerText.setFillColor(sf::Color::White);
+    }
+
+    HealthBar monkHealthBar(100.f, 20.f,
+        { static_cast<float>(win_l) * 0.1f, 40.f },
+        { static_cast<float>(win_l) * 0.8f, 20.f },
+        font);
+
     sf::Clock clock;
     while (window.isOpen())
     {
@@ -369,6 +393,9 @@ int main()
                 }
             }
 
+            survivalTimer.update(dt);
+            monkHealthBar.update(dt);
+
             spawnTimer += dt;
 
             if (spawnTimer >= spawnInterval)
@@ -438,6 +465,9 @@ int main()
                 }
             }
 
+            if (survivalTimer.isExpired())
+                gameOver = true;
+
         }
         else
         {
@@ -456,6 +486,8 @@ int main()
                 spawnTimer = 0.f;
                 dm.reset();
                 monk.reset();
+                survivalTimer.start();
+                monkHealthBar.reset();
             }
         }
 
@@ -477,6 +509,7 @@ int main()
         dm.draw(window);
         monk.draw(window);
         window.draw(staffAura);
+        window.draw(monkHealthBar);
 
         for (auto& fb : fireballs)
         {
@@ -486,7 +519,24 @@ int main()
 
         if (gameOver && fontLoaded)
         {
+            if (survivalTimer.isExpired())
+                gameOverText.setString("GREAT ENEMY FELLED");
+            else
+                gameOverText.setString("GAME OVER");
+            sf::FloatRect tb = gameOverText.getLocalBounds();
+            gameOverText.setOrigin({ tb.size.x / 2.f, tb.size.y / 2.f });
             window.draw(gameOverText);
+        }
+
+        if (fontLoaded)
+        {
+            int secs = static_cast<int>(std::ceil(survivalTimer.getRemaining()));
+            timerText.setString(std::to_string(secs));
+            sf::FloatRect tb = timerText.getLocalBounds();
+            timerText.setOrigin({ tb.size.x, 0.f });
+            timerText.setPosition({ static_cast<float>(win_l) - 20.f, 10.f });
+            if (!gameOver)
+                window.draw(timerText);
         }
 
         window.display();

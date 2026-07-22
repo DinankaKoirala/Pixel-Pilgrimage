@@ -5,14 +5,14 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SFML_DIR "C:/Users/grhig/boulder_dodge/SFML-3.1.0/lib/cmake/SFML" CACHE PATH "")
-find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Audio)
 
 add_executable(attack
     main.cpp
   
 )
 
-target_link_libraries(attack PRIVATE SFML::Graphics SFML::Window SFML::System)
+target_link_libraries(attack PRIVATE SFML::Graphics SFML::Window SFML::System SFML::Audio)
 
 add_custom_command(
     TARGET attack POST_BUILD

@@ -18,6 +18,8 @@
 #include "Aura.hpp"
 #include "timer.h"
 #include "HealthBar.hpp"
+#include "Lives.hpp"
+#include "SoundManager.hpp"
 
 // Player's collision box, smaller than the full sprite frame. Each run-cycle
 // frame is a fixed-size box with a lot of transparent padding around the
@@ -276,6 +278,10 @@ int main()
         { static_cast<float>(win_l) * 0.8f, 20.f },
         font);
 
+    Lives playerLives({ 20.f, static_cast<float>(win_b) - 30.f });
+
+    SoundManager soundManager;
+
     sf::Clock clock;
     while (window.isOpen())
     {
@@ -395,6 +401,8 @@ int main()
 
             survivalTimer.update(dt);
             monkHealthBar.update(dt);
+            playerLives.update(dt);
+            soundManager.update(dt);
 
             spawnTimer += dt;
 
@@ -419,6 +427,7 @@ int main()
                 fb.shape.setPosition(orb.getPosition());
 
                 fireballs.push_back(std::move(fb));
+                soundManager.playWhoosh();
             }
             for (auto& fb : fireballs)
             {
@@ -448,24 +457,24 @@ int main()
             monk.update(dt, player.getPosition());
             auto playerBounds = getPlayerHitbox(player);
 
+            bool hit = false;
             for (auto& fb : fireballs)
             {
                 if (playerBounds.findIntersection(fb.shape.getGlobalBounds()))
                 {
-                    gameOver = true;
+                    hit = true;
                     break;
                 }
-                if (dm.checkCollision(playerBounds))
-                {
-                    gameOver = true;
-                }
-                if (monk.checkCollision(playerBounds))
-                {
-                    gameOver = true;
-                }
             }
+            if (!hit && dm.checkCollision(playerBounds))
+                hit = true;
+            if (!hit && monk.checkCollision(playerBounds))
+                hit = true;
 
-            if (survivalTimer.isExpired())
+            if (hit && playerLives.takeDamage())
+                soundManager.playHit();
+
+            if (playerLives.isDead() || survivalTimer.isExpired())
                 gameOver = true;
 
         }
@@ -488,6 +497,7 @@ int main()
                 monk.reset();
                 survivalTimer.start();
                 monkHealthBar.reset();
+                playerLives.reset();
             }
         }
 
@@ -510,6 +520,7 @@ int main()
         monk.draw(window);
         window.draw(staffAura);
         window.draw(monkHealthBar);
+        window.draw(playerLives);
 
         for (auto& fb : fireballs)
         {

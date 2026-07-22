@@ -75,6 +75,6 @@ Debug/
  
 Release/
  
- *.user 
+*.user 
  
- 
+.DS_Store 

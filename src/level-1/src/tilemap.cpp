@@ -155,6 +155,19 @@ sf::Vector2f Tilemap::getPlayerSpawnPoint() const{
     return {100.f , 100.f};
 }
 
+sf::Vector2f Tilemap::getLevelEndPoint() const{
+    for (int rows = 0; rows < tileCountY; rows++) {
+        for (int cols = 0; cols < tileCountX; cols++) {
+            TileType tile = tileGrid[rows][cols];
+            if(tile == TileType::LevelEnd){
+                return {(float)(cols*TileSize),(float)(rows*TileSize)};
+            }
+        
+        }
+    }
+    return {100.f , 100.f};
+}
+
 std::vector<sf::Vector2f> Tilemap::getCoinSpawnPoints() const{
     std::vector<sf::Vector2f> coinPos;
     for (int rows = 0; rows < tileCountY; rows++) {

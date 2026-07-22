@@ -1,31 +1,31 @@
-cmake_minimum_required(VERSION 3.16)
-project(NightWinterScene VERSION 1.0.0 LANGUAGES CXX)
+﻿cmake_minimum_required(VERSION 3.28)
+
+project(PixelPilgrimage LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
+set(SFML_DIR "C:/Users/Desktop-LOQ/Documents/libaries/SFML-3.1.0/lib/cmake/SFML")
 
-add_executable(game main.cpp)
+find_package(SFML REQUIRED COMPONENTS Graphics Audio)
 
-target_link_libraries(game PRIVATE SFML::Graphics SFML::Window SFML::System)
+add_executable(main
+    src/main.cpp
+    src/player.cpp
+    src/tilemap.cpp
+    src/enemy.cpp
+    src/background.cpp
+    src/audioManager.cpp
+    src/coin.cpp
+)
 
-# Copy assets to build directory
-add_custom_command(TARGET game POST_BUILD
+target_include_directories(main PRIVATE src/Header)
+
+target_link_libraries(main PRIVATE SFML::Graphics)
+target_link_libraries(main PRIVATE SFML::Audio)
+
+# Automatically copy all SFML DLLs after building
+add_custom_command(TARGET main POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/assets"
-        "$<TARGET_FILE_DIR:game>/assets"
-    COMMENT "Copying assets to build directory")
-
-# Copy SFML DLLs to build directory (generator expressions for debug/release)
-add_custom_command(TARGET game POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE:SFML::System>"
-        "$<TARGET_FILE_DIR:game>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE:SFML::Window>"
-        "$<TARGET_FILE_DIR:game>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE:SFML::Graphics>"
-        "$<TARGET_FILE_DIR:game>"
-    COMMENT "Copying SFML DLLs to build directory")
+    "C:/Users/Desktop-LOQ/Documents/libaries/SFML-3.1.0/bin"
+    "$<TARGET_FILE_DIR:main>"
+)

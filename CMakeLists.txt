@@ -1,31 +1,52 @@
-﻿cmake_minimum_required(VERSION 3.28)
-
+﻿cmake_minimum_required(VERSION 3.20)
 project(PixelPilgrimage LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-
-set(SFML_DIR "C:/Users/Desktop-LOQ/Documents/libaries/SFML-3.1.0/lib/cmake/SFML")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(SFML REQUIRED COMPONENTS Graphics Audio)
 
-add_executable(main
+add_executable(PixelPilgrimage
     src/main.cpp
-    src/player.cpp
-    src/tilemap.cpp
-    src/enemy.cpp
-    src/background.cpp
-    src/audioManager.cpp
-    src/coin.cpp
+    src/runLevel2.cpp
+    src/level-1/src/audioManager.cpp
+    src/level-1/src/background.cpp
+    src/level-1/src/coin.cpp
+    src/level-1/src/enemy.cpp
+    src/level-1/src/player.cpp
+    src/level-1/src/tilemap.cpp
 )
+target_include_directories(PixelPilgrimage PRIVATE src/level-1/src/Header)
+target_link_libraries(PixelPilgrimage PRIVATE SFML::Graphics SFML::Audio)
 
-target_include_directories(main PRIVATE src/Header)
+add_executable(PixelPilgrimage_level2
+    src/level-2/src/level2.cpp
+    src/level-2/src/Game.cpp
+    src/level-2/src/Decorationmanager.cpp
+    src/level-2/src/Starspawner.cpp
+    src/level-2/src/Level.cpp
+)
+target_include_directories(PixelPilgrimage_level2 PRIVATE src/level-2/src)
+target_link_libraries(PixelPilgrimage_level2 PRIVATE SFML::Graphics SFML::Audio)
 
-target_link_libraries(main PRIVATE SFML::Graphics)
-target_link_libraries(main PRIVATE SFML::Audio)
-
-# Automatically copy all SFML DLLs after building
-add_custom_command(TARGET main POST_BUILD
+add_custom_command(TARGET PixelPilgrimage_level2 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "C:/Users/Desktop-LOQ/Documents/libaries/SFML-3.1.0/bin"
-    "$<TARGET_FILE_DIR:main>"
+    "${PROJECT_SOURCE_DIR}/src/level-2/assets"
+    "$<TARGET_FILE_DIR:PixelPilgrimage_level2>/assets"
 )
+
+if(WIN32)
+    get_filename_component(SFML_ROOT "${SFML_DIR}" DIRECTORY)
+    get_filename_component(SFML_ROOT "${SFML_ROOT}" DIRECTORY)
+    get_filename_component(SFML_ROOT "${SFML_ROOT}" DIRECTORY)
+    add_custom_command(TARGET PixelPilgrimage POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${SFML_ROOT}/bin"
+        "$<TARGET_FILE_DIR:PixelPilgrimage>"
+    )
+    add_custom_command(TARGET PixelPilgrimage_level2 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${SFML_ROOT}/bin"
+        "$<TARGET_FILE_DIR:PixelPilgrimage_level2>"
+    )
+endif()

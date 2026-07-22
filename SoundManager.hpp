@@ -13,8 +13,13 @@ public:
         m_whooshBuffer.loadFromFile("Data/whoosh.wav");
         mLaughBuffer.loadFromFile("Data/evil-laugh.wav");
 
-        m_whooshSound.setVolume(50.f);
+        m_whooshSound.setVolume(10.f);
         mLaughSound.setVolume(500.f);
+
+        m_bgm.openFromFile("Data/bgm.mp3");
+        m_bgm.setLooping(true);
+        m_bgm.setVolume(70.f);
+        m_bgm.play();
 
         scheduleNextLaugh();
     }
@@ -47,6 +52,7 @@ private:
     sf::Sound m_hitSound;
     sf::Sound m_whooshSound;
     sf::Sound mLaughSound;
+    sf::Music m_bgm;
     float mLaughTimer = 0.f;
 
     void scheduleNextLaugh()

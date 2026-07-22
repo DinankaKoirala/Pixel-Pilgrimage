@@ -65,7 +65,7 @@ void Tilemap::draw(sf::RenderWindow& window) const {
     for(int rows = 0 ; rows < tileCountY ; rows++){
         for(int cols = 0 ; cols < tileCountX ; cols++){
             TileType tile = tileGrid[rows][cols];
-            if(tile == TileType::Air || tile == TileType::Enemy || tile == TileType::PlayerSpawn){
+            if(tile == TileType::Air || tile == TileType::Enemy || tile == TileType::PlayerSpawn || tile == TileType::Coin ){
                 continue;
             }
             rect.setPosition({(float)(cols*TileSize),(float)(rows*TileSize)});
@@ -77,11 +77,10 @@ void Tilemap::draw(sf::RenderWindow& window) const {
                 rect.setFillColor(sf::Color::White);
                 rect.setTexture(&stoneTexture);
             }
-            else if (tile == TileType::Coin){
-                rect.setFillColor(sf::Color::Yellow);
-            }
             else if (tile == TileType::ObstacleGround){
-                rect.setFillColor(sf::Color(135, 206, 235));
+                rect.setFillColor(sf::Color::White);
+                rect.setTexture(&obstacleTexture);
+                rect.setTextureRect(sf::IntRect({0, 0}, {32, 32}));
             }
             else if (tile == TileType::Trigger){
                 rect.setFillColor(sf::Color::Red);
@@ -121,6 +120,11 @@ bool Tilemap::loadTexture(const std::string& path , const std::string Block){
         return false;
         }
     }
+    if(Block == "Obstacle"){
+        if(!obstacleTexture.loadFromFile(path)){
+        return false;
+        }
+    }
     return true;
 }
 
@@ -149,4 +153,18 @@ sf::Vector2f Tilemap::getPlayerSpawnPoint() const{
         }
     }
     return {100.f , 100.f};
+}
+
+std::vector<sf::Vector2f> Tilemap::getCoinSpawnPoints() const{
+    std::vector<sf::Vector2f> coinPos;
+    for (int rows = 0; rows < tileCountY; rows++) {
+        for (int cols = 0; cols < tileCountX; cols++) {
+            TileType tile = tileGrid[rows][cols];
+            if(tile == TileType::Coin){
+                coinPos.push_back({(float)(cols*TileSize),(float)(rows*TileSize)});
+            }
+        
+        }
+    }
+return coinPos;
 }

@@ -5,6 +5,7 @@
 #include"Header/enemy.h"
 #include"Header/background.h"
 #include<iostream>
+#include"Header/coin.h"
 
 int main()
 {
@@ -34,6 +35,9 @@ int main()
     if(!tilemap.loadTexture("../src/Resources/grass_tile.png", "Grass")){
         std::cout << "Failed to load Grass textures!" << std::endl;
     }
+    if(!tilemap.loadTexture("../src/Resources/platform_tile.jpg", "Obstacle")){
+        std::cout << "Failed to load obstacle texture" << std::endl;
+    }
     std::vector<sf::FloatRect> solids = tilemap.getSolidTiles();
 
     sf::Vector2f playerSpawn = tilemap.getPlayerSpawnPoint();
@@ -56,6 +60,19 @@ int main()
                 std::cout << "Failed to load enemy texture!" << std::endl;
             }
         }
+    
+    std::vector<sf::Vector2f> coinSpawns = tilemap.getCoinSpawnPoints();
+    std::vector<Coin> coins;
+    for(const sf::Vector2f& coinPos :coinSpawns){
+         Coin coin(coinPos.x , coinPos.y);
+         coins.push_back(coin);   
+    }
+        for(Coin& coin : coins) {
+            if(!coin.loadTextures("../src/Resources/collectible.png")) {
+                std::cout << "Failed to load coin texture!" << std::endl;
+            }
+        }
+
 
         Background background;
         background.loadTexture("../src/Resources/background.png");
@@ -88,7 +105,13 @@ int main()
                     audio.playSFX("hurt");
                 }
             }
+            for (Coin& coin : coins) {
+                if (auto overlap = player.getPlayerHitbox().findIntersection(coin.getCoinHitbox())) {
+                    coin.collect();
+                    audio.playSFX("hurt");
+                }
         }
+    }
 
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::R)){
@@ -97,6 +120,9 @@ int main()
                 enemies[i].reset(enemySpawns[i].x, enemySpawns[i].y);
             }   
                 playerAlive = true;
+            for (size_t i = 0; i < coins.size(); i++) {
+                coins[i].reset(coinSpawns[i].x, coinSpawns[i].y);
+            } 
         }
         if(player.getPosition().x <= window.getSize().x / 2.f){
             camera.setCenter({1280/2.f, 360.f});
@@ -111,8 +137,14 @@ int main()
         background.draw(window , camera.getCenter().x);
         tilemap.draw(window);
         player.draw(window); 
+        
         for(Enemy& enemy :enemies){
             enemy.draw(window);
+        }
+        for (Coin& coin : coins) {
+                if (!coin.isCollected()) {
+                    coin.draw(window);
+                }
         }
         window.display();
     }

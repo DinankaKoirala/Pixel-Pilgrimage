@@ -15,6 +15,7 @@ add_executable(main
     src/enemy.cpp
     src/background.cpp
     src/audioManager.cpp
+    src/coin.cpp
 )
 
 target_include_directories(main PRIVATE src/Header)

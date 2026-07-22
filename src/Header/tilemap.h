@@ -19,7 +19,7 @@ class Tilemap{
     private:
         int tileCountX = 0,tileCountY = 0;
         std::vector<std::vector<TileType>> tileGrid;
-        sf::Texture stoneTexture , grassTexture;
+        sf::Texture stoneTexture , grassTexture , obstacleTexture;
 
     public:
         static constexpr int TileSize = 32;
@@ -29,5 +29,6 @@ class Tilemap{
         bool loadTexture(const std::string& path, const std::string Block);
         std::vector<sf::Vector2f> getEnemySpawnPoints() const;
         sf::Vector2f getPlayerSpawnPoint() const;
+        std::vector<sf::Vector2f> getCoinSpawnPoints() const;
 
 };

@@ -13,7 +13,13 @@ bool Enemy::loadTextures(const std::string& path){
     return true;
 }
 void Enemy::draw(sf::RenderWindow& window){
-    sprite.setPosition({hitbox.position.x-16.f, hitbox.position.y - 33.f});
+    if(!movingRight){
+        sprite.setScale({1.5f, 1.5f});
+        sprite.setPosition({hitbox.position.x-16.f, hitbox.position.y - 33.f});
+    } else {
+        sprite.setScale({-1.5f, 1.5f});
+        sprite.setPosition({hitbox.position.x + hitbox.size.x+16.f, hitbox.position.y- 33.f});
+    }
     window.draw(sprite);
 
     /*   SEE HITBOX FOR DEBUG

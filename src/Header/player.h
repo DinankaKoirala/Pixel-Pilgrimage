@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include<SFML/Graphics.hpp>
-#include"Header/audioManager.h"
+#include"audioManager.h"
 
 class Player{
     private:

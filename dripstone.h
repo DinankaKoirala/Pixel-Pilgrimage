@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
+#include <iostream>
 
 // ===================== DRIPSTONE ATTACK =====================
 // A ceiling hazard that telegraphs (warns) before falling, then
@@ -15,24 +16,54 @@ enum class DripstoneState {
 
 class Dripstone {
 public:
-    Dripstone(sf::Vector2f ceilingPos, float groundY = 550.f)
-        : m_shape(sf::Vector2f(20.f, 40.f)),
-        m_warningShape(sf::Vector2f(20.f, 40.f)),
+    // pngScale lets you grow/shrink the dripstone.png overlay independently
+    // of the triangle's hitbox: 1.0 = exactly fits the triangle, 1.5 = 50%
+    // bigger, 0.5 = half size, etc. The triangle (and collision box) size
+    // is unaffected either way.
+    Dripstone(sf::Vector2f ceilingPos, float groundY = 550.f, float pngScale = 1.f)
+        : m_shape(),
+        m_warningShape(),
+        m_sprite(getTexture()),
         m_state(DripstoneState::Telegraphing),
         m_telegraphTimer(0.5f),   // half-second warning before falling - keep readable but fast
         m_telegraphDuration(0.5f),
         m_fallSpeed(0.f),
         m_gravity(1500.f),
-        m_groundY(groundY)
+        m_groundY(groundY),
+        m_size(20.f, 40.f),
+        m_pngScale(pngScale)
     {
+        // Build a downward-pointing triangle (like a stalactite hanging
+        // from the ceiling): flat edge on top, point at the bottom.
+        m_shape.setPointCount(3);
+        m_shape.setPoint(0, sf::Vector2f(0.f, 0.f));                     // top-left
+        m_shape.setPoint(1, sf::Vector2f(m_size.x, 0.f));                // top-right
+        m_shape.setPoint(2, sf::Vector2f(m_size.x / 2.f, m_size.y));     // bottom point
         m_shape.setFillColor(sf::Color(150, 150, 150));
         m_shape.setPosition(ceilingPos);
 
-        // The warning indicator sits at the same x position but drawn
-        // as a thin, semi-transparent sliver so players can see exactly
-        // where it's about to fall before it actually drops.
+        // The warning indicator mirrors the same triangle shape but drawn
+        // semi-transparent so players can see exactly where it's about to
+        // fall before it actually drops.
+        m_warningShape.setPointCount(3);
+        m_warningShape.setPoint(0, sf::Vector2f(0.f, 0.f));
+        m_warningShape.setPoint(1, sf::Vector2f(m_size.x, 0.f));
+        m_warningShape.setPoint(2, sf::Vector2f(m_size.x / 2.f, m_size.y));
         m_warningShape.setFillColor(sf::Color(255, 60, 60, 90));
         m_warningShape.setPosition(ceilingPos);
+
+        // Scale the dripstone.png sprite so it fits over the triangle's
+        // bounding box (times pngScale), then center it on the triangle so
+        // that adjusting pngScale grows/shrinks it around the same spot
+        // instead of shifting it off the shape.
+        sf::Vector2u texSize = getTexture().getSize();
+        if (texSize.x > 0 && texSize.y > 0) {
+            m_sprite.setOrigin(sf::Vector2f(texSize.x / 2.f, texSize.y / 2.f));
+            m_sprite.setScale(sf::Vector2f(
+                (m_size.x / static_cast<float>(texSize.x)) * m_pngScale,
+                (m_size.y / static_cast<float>(texSize.y)) * m_pngScale));
+        }
+        m_sprite.setPosition(ceilingPos + sf::Vector2f(m_size.x / 2.f, m_size.y / 2.f));
     }
 
     void update(float dt) {
@@ -45,14 +76,17 @@ public:
             m_fallSpeed += m_gravity * dt;
             m_shape.move(sf::Vector2f(0.f, m_fallSpeed * dt));
 
-            // Land once the bottom edge reaches the cave floor.
+            // Land once the bottom point reaches the cave floor.
             sf::Vector2f pos = m_shape.getPosition();
-            float height = m_shape.getSize().y;
+            float height = m_size.y;
             if (pos.y + height >= m_groundY) {
                 m_shape.setPosition(sf::Vector2f(pos.x, m_groundY - height));
                 m_state = DripstoneState::Landed;
             }
         }
+
+        // Keep the png overlay glued to the triangle's center every frame.
+        m_sprite.setPosition(m_shape.getPosition() + sf::Vector2f(m_size.x / 2.f, m_size.y / 2.f));
     }
 
     void draw(sf::RenderWindow& window) const {
@@ -63,6 +97,7 @@ public:
         }
         else {
             window.draw(m_shape);
+            window.draw(m_sprite); // dripstone.png rendered on top of the triangle
         }
     }
 
@@ -78,14 +113,30 @@ public:
     bool isDangerous() const { return m_state == DripstoneState::Falling; }
 
 private:
-    sf::RectangleShape m_shape;
-    sf::RectangleShape m_warningShape;
+    // Loaded once and shared across every Dripstone instance.
+    static sf::Texture& getTexture() {
+        static sf::Texture texture;
+        static bool loaded = false;
+        if (!loaded) {
+            loaded = texture.loadFromFile("Data/dripstone.png");
+            if (!loaded) {
+                std::cerr << "Failed to load dripstone.png\n";
+            }
+        }
+        return texture;
+    }
+
+    sf::ConvexShape m_shape;
+    sf::ConvexShape m_warningShape;
+    sf::Sprite m_sprite;
     DripstoneState m_state;
     float m_telegraphTimer;
     float m_telegraphDuration;
     float m_fallSpeed;
     float m_gravity;
     float m_groundY;
+    sf::Vector2f m_size;
+    float m_pngScale;
 };
 
 // ===================== DRIPSTONE MANAGER =====================
@@ -95,17 +146,21 @@ private:
 // being cleaned up automatically.
 class DripstoneManager {
 public:
+    // pngScale grows/shrinks the dripstone.png overlay on every spawned
+    // dripstone (1.0 = default fit, >1 bigger, <1 smaller).
     DripstoneManager(float spawnInterval = 1.5f,
         float minX = 50.f,
         float maxX = 750.f,
         float ceilingY = 0.f,
-        float groundY = 550.f)
+        float groundY = 550.f,
+        float pngScale = 10.f)
         : m_spawnTimer(0.f),
         m_spawnInterval(spawnInterval),
         m_minX(minX),
         m_maxX(maxX),
         m_ceilingY(ceilingY),
-        m_groundY(groundY)
+        m_groundY(groundY),
+        m_pngScale(pngScale)
     {
     }
 
@@ -117,7 +172,7 @@ public:
             float span = m_maxX - m_minX;
             float x = m_minX + static_cast<float>(rand() % static_cast<int>(span > 0.f ? span : 1.f));
 
-            m_entries.push_back({ Dripstone(sf::Vector2f(x, m_ceilingY), m_groundY), 0.f });
+            m_entries.push_back({ Dripstone(sf::Vector2f(x, m_ceilingY), m_groundY, m_pngScale), 0.f });
         }
 
         for (auto& entry : m_entries) {
@@ -173,4 +228,5 @@ private:
     float m_maxX;
     float m_ceilingY;
     float m_groundY;
+    float m_pngScale;
 };

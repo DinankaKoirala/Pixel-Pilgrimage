@@ -29,7 +29,7 @@ sf::FloatRect getPlayerHitbox(const sf::Sprite& sprite)
     const float insetLeftFrac = 0.40f;   // trim 30% off the left edge
     const float insetRightFrac = 0.40f;  // trim 30% off the right edge
     const float insetTopFrac = 0.30f;    // trim 15% off the top (hair/crown)
-    const float insetBottomFrac = 0.05f; // trim 5% off the bottom
+    const float insetBottomFrac = 0.f; // trim 5% off the bottom
 
     float trimLeft = local.size.x * insetLeftFrac;
     float trimRight = local.size.x * insetRightFrac;

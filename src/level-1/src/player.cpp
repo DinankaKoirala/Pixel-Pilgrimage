@@ -72,7 +72,7 @@ sf::Vector2f Player::getPosition() const {
 }
 
 bool Player::loadTextures(){
-    if(!idleTexture.loadFromFile("../src/Resources/idle.png" )){
+    if(!idleTexture.loadFromFile("../src/level-1/assets/textures/idle.png" )){
         return false;
     }
     sprite.setTexture(idleTexture, true);

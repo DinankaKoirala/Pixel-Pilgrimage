@@ -8,7 +8,7 @@
 Game::Game()
     : window(sf::VideoMode({ 1280u, 720u }), "Night Bridge Level")
     , view(sf::FloatRect({ 0.f, 0.f }, { 1280.f, 720.f }))
-    , assetsPath("assets/")
+    , assetsPath("../src/level-2/assets/")
     , background(bgTex)
     , player(sf::Vector2f(150.f, 550.f))
 {

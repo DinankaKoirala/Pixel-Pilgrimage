@@ -25,21 +25,21 @@ int main()
         window.setFramerateLimit(60);
 
         AudioManager audio;
-        audio.loadSFX("jump", "../src/Resources/jump.mp3");
-        audio.loadSFX("hurt", "../src/Resources/hurt.mp3");
-        audio.loadSFX("footstep", "../src/Resources/footstep.mp3");
+        audio.loadSFX("jump", "../src/level-1/assets/sounds/jump.mp3");
+        audio.loadSFX("hurt", "../src/level-1/assets/sounds/hurt.mp3");
+        audio.loadSFX("footstep", "../src/level-1/assets/sounds/footstep.mp3");
 
         Tilemap tilemap;
-        if (!tilemap.loadFromImage("../src/Resources/sprite-level1.png")) {
+        if (!tilemap.loadFromImage("../src/level-1/assets/map/sprite-level1.png")) {
             std::cout << "Failed to load sprite-level1!" << std::endl;
         }
-        if (!tilemap.loadTexture("../src/Resources/dirt_tile.png", "Stone")) {
+        if (!tilemap.loadTexture("../src/level-1/assets/texture/dirt_tile.png", "Stone")) {
             std::cout << "Failed to load stone texture!" << std::endl;
         }
-        if (!tilemap.loadTexture("../src/Resources/grass_tile.png", "Grass")) {
+        if (!tilemap.loadTexture("../src/level-1/assets/texture/grass_tile.png", "Grass")) {
             std::cout << "Failed to load grass texture!" << std::endl;
         }
-        if (!tilemap.loadTexture("../src/Resources/platform_tile.jpg", "Obstacle")) {
+        if (!tilemap.loadTexture("../src/level-1/assets/texture/platform_tile.jpg", "Obstacle")) {
             std::cout << "Failed to load obstacle texture!" << std::endl;
         }
 
@@ -73,7 +73,7 @@ int main()
             enemies.push_back(enemy);
         }
         for (Enemy& enemy : enemies) {
-            if (!enemy.loadTextures("../src/Resources/rhino_sheet.png")) {
+            if (!enemy.loadTextures("../src/level-1/assets/texture/rhino_sheet.png")) {
                 std::cout << "Failed to load enemy texture!" << std::endl;
             }
         }
@@ -85,16 +85,16 @@ int main()
             coins.push_back(coin);
         }
         for (Coin& coin : coins) {
-            if (!coin.loadTextures("../src/Resources/collectible.png")) {
+            if (!coin.loadTextures("../src/level-1/assets/texture/collectible.png")) {
                 std::cout << "Failed to load coin texture!" << std::endl;
             }
         }
 
         Background background;
-        background.loadTexture("../src/Resources/background.png");
+        background.loadTexture("../src/level-1/assets/texture/background.png");
 
         sf::Font completeFont;
-        bool fontLoaded = completeFont.openFromFile("/System/Library/Fonts/Helvetica.ttc");
+        bool fontLoaded = completeFont.openFromFile("../src/level-1/assets/texture/fonts/Helvetica.ttc");
 
         bool transitionReady = false;
 

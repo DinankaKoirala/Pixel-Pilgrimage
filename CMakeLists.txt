@@ -32,7 +32,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(SFML)
-
 # ---------------------------------------
 
 set(SOURCES
@@ -51,6 +50,7 @@ target_link_libraries(game PRIVATE
     SFML::Graphics
     SFML::Window
     SFML::System
+    SFML::Audio
 )
 
 add_custom_command(TARGET game POST_BUILD

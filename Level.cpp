@@ -42,7 +42,7 @@ void createLevel(
                     crackedTex,
                     sf::Vector2f(x, groundY)));
 
-            float heights[] = { 450.f, 560.f, 560.f };//possible spawn heights for ninja stars
+            float heights[] = { 370.f, 560.f, 560.f };//possible spawn heights for ninja stars
             float starY = heights[rand() % 3];
 
             starSpawner.addSpawnPoint(

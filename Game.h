@@ -12,6 +12,7 @@
 #include "StarSpawner.h"
 #include "DecorationManager.h"
 #include "Coin.h"
+#include <SFML/Audio.hpp>
 
 // Owns and runs the entire game: the window, the game loop, and every
 // system (platforms, player, ninja stars, decorations, collisions).
@@ -46,6 +47,18 @@ private:
     DecorationManager decorations;
 
     Player player;
+    //sound
+    sf::SoundBuffer coinBuffer;
+    std::optional<sf::Sound> coinSound;
+
+    sf::SoundBuffer jumpBuffer;
+    std::optional<sf::Sound> jumpSound;
+
+    sf::SoundBuffer crackBuffer;
+    std::optional<sf::Sound> crackSound;
+
+    sf::SoundBuffer deathBuffer;
+    std::optional<sf::Sound> deathSound;
     sf::Clock clock;
     bool gameOver = false;//tracks wether game ended or not 
     bool gameWon = false;                       // true once player clears enough cracked platforms

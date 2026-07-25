@@ -4,9 +4,10 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <SFML/Audio.hpp>
 
 Game::Game()//constructor initializes the game window, view, and other members
-    : window(sf::VideoMode({ 1280u, 720u }), "Night Bridge Level")//window creation 
+    : window(sf::VideoMode({ 1280u, 720u }), " Bridge Level")//window creation 
     , view(sf::FloatRect({ 0.f, 0.f }, { 1280.f, 720.f }))//creates a camera the camera follows the player 
     , assetsPath("assets/")
     , background(bgTex)
@@ -52,7 +53,7 @@ bool Game::loadAssets()
     scoreText.setFillColor(sf::Color(255, 215, 0));
     scoreText.setOutlineColor(sf::Color::Black);
     scoreText.setOutlineThickness(2.f);
-    scoreText.setPosition({ 1085.f, 18.f});
+    scoreText.setPosition({ 1085.f, 18.f });
     // ===== Score Panel =====
     scorePanel.setSize({ 250.f, 65.f });
     scorePanel.setPosition({ 1015.f, 10.f });
@@ -63,15 +64,53 @@ bool Game::loadAssets()
     scorePanel.setOutlineColor(sf::Color(255, 215, 0)); // Gold border
     // fixed HUD corner - drawn with the default view, not the scrolling one
     scoreText.setString("Score: 0");
+    //sound 
+    if (!coinBuffer.loadFromFile(assetsPath + "coincollect.wav"))
+        return false;
+
+    coinSound.emplace(coinBuffer);
+
+    if (!jumpBuffer.loadFromFile(assetsPath + "jump.wav"))
+        return false;
+
+    jumpSound.emplace(jumpBuffer);
+
+    if (!crackBuffer.loadFromFile(assetsPath + "crackedplatform.wav"))
+        return false;
+
+    crackSound.emplace(crackBuffer);
+
+    if (!deathBuffer.loadFromFile(assetsPath + "playerdeath.wav"))
+        return false;
+
+    deathSound.emplace(deathBuffer);
 
     return true;//everything loaded successfully
 }
 //GAME LOOP
 void Game::run()
 {
+    // `clock` started ticking the moment it was constructed - i.e. BEFORE
+    // loadAssets()/createLevel() ran in the Game constructor. Loading all
+    // the textures/sounds/font takes real time, so without this restart
+    // the very first dt below would silently include that entire loading
+    // time as "elapsed game time" - one giant physics step big enough to
+    // launch the player through the floor and trigger an instant death
+    // before the window is even visible. Restarting here throws that
+    // loading-time delta away so the game actually starts clean.
+    clock.restart();
+
     while (window.isOpen())
     {
         float dt = clock.restart().asSeconds();//dt is the time taken by one frame. It makes movement independent of FPS.
+
+        // Safety net for later too: a lag spike (window drag, OS hiccup,
+        // breakpoint while debugging, etc.) can also produce an oversized
+        // dt and cause the same kind of tunneling mid-game. Cap it so
+        // physics never takes a bigger step than this, no matter what.
+        const float maxDt = 1.f / 30.f;
+        if (dt > maxDt) dt = maxDt;
+
         processEvents();//handles keyboard
         update(dt);
         render();
@@ -89,7 +128,7 @@ void Game::processEvents()
 
         if (const auto* key = event->getIf<sf::Event::KeyPressed>())
         {
-            
+
             if (key->code == sf::Keyboard::Key::R && (gameOver || gameWon))
             {
                 restartGame(player, platforms, ninjaStars, coins, starSpawner, gameOver, blockTex, crackedTex, coinTex);
@@ -107,6 +146,11 @@ void Game::update(float dt)//runs every functiom
     //stores previous feet position 
     float prevPlayerBottom =
         player.getBounds().position.y + player.getBounds().size.y;
+
+    // Remember gameOver's state BEFORE this frame's checks run, so we can
+    // tell the exact frame the player dies (gameOver flips false -> true)
+    // and play the death sound exactly once.
+    bool wasGameOverBefore = gameOver;
 
     if (!gameOver && !gameWon)
     { // move player shitttttts
@@ -154,11 +198,15 @@ void Game::update(float dt)//runs every functiom
     {
         checkCollisions(prevPlayerBottom);//collision detection 
         //Execute buffered jump after landing
-            if (player.hasBufferedJump() && player.onGround)
+        if (player.hasBufferedJump() && player.onGround)
+        {
+            player.jump();
+            player.clearJumpBuffer();
+            if (jumpSound)
             {
-                player.jump();
-                player.clearJumpBuffer();
+                jumpSound->play();
             }
+        }
 
         if (player.shape.getPosition().y > 720.f)
         {
@@ -171,7 +219,7 @@ void Game::update(float dt)//runs every functiom
         for (auto& star : ninjaStars) //ninja stars collision 
         {
             star->update(dt);
-            if (player.getBounds().findIntersection(star->getBounds()))
+            if (player.getBounds().findIntersection(star->getHitbox()))
             {
                 gameOver = true;
             }
@@ -191,6 +239,15 @@ void Game::update(float dt)//runs every functiom
             ninjaStars.end(),
             [](const auto& star) { return star->getBounds().position.x < -900.f; }),
         ninjaStars.end());
+
+    // gameOver just flipped from false to true this frame - the player died
+    // (fell off, hit a ninja star, or touched a cracked platform). Play the
+    // death sound exactly once, right here, instead of at every place that
+    // sets gameOver = true.
+    if (!wasGameOverBefore && gameOver && deathSound)
+    {
+        deathSound->play();
+    }
 
     decorations.update(cameraX, dt); // dt now drives sway/bob/drift/loop animations
 }
@@ -215,9 +272,24 @@ void Game::checkCrackTriggers() //Warn player before reaching cracked platform.
             if (cracked->triggerCrack()) // only counts the first time it fires
             {
                 crackedPlatformsPassed++;
+                if (crackSound)
+                {
+                    crackSound->play();
+                }
                 if (crackedPlatformsPassed >= crackedPlatformsToWin)
                 {
                     gameWon = true;
+
+                    // sf::Sound keeps playing to the end of the clip on
+                    // its own once started, regardless of game state - so
+                    // without this, the crack sound (just triggered above,
+                    // or from an earlier platform still ringing out) would
+                    // keep audibly playing after the win screen/score
+                    // already showed. Cut it off right here instead.
+                    if (crackSound)
+                    {
+                        crackSound->stop();
+                    }
                 }
             }
         }
@@ -230,15 +302,15 @@ void Game::checkCollisions(float prevPlayerBottom)
     {
         bool intersects = player.getBounds().findIntersection(p->getBounds()).has_value();
 
-        if (auto* cracked = dynamic_cast<CrackedPlatform*>(p.get()))
+        if (dynamic_cast<CrackedPlatform*>(p.get()))
         {
-            // Cracked planks are a hazard, not real ground: touching one
-            // at all ends the run immediately.
-            if (intersects)
-            {
-                gameOver = true;
-                break;
-            }
+            // Cracked planks are never real ground (isSolid() is always
+            // false for them). If the player doesn't jump clear of one,
+            // we just skip it here entirely - no landing response is
+            // applied, so gravity keeps pulling the player down and they
+            // fall straight through the gap instead of freezing on
+            // contact. Death (if any) happens naturally later via the
+            // "fell off the bottom of the screen" check in update().
             continue;
         }
 
@@ -271,6 +343,11 @@ void Game::checkCoinCollisions()
         if (player.getBounds().findIntersection(coin->getBounds()))
         {
             coin->collect();
+            if (coinSound)
+            {
+                coinSound->play();
+            }    // <-- play the sound
+
             score += scorePerCoin;
             player.boostSpeed(speedBoostPerCoin); // ramps in gradually, see Player::update
 
@@ -333,7 +410,7 @@ void Game::render()
         window.draw(*scoreCoin);
     }
 
-        window.draw(scoreText);
+    window.draw(scoreText);
     window.setView(view);
 
     window.display();

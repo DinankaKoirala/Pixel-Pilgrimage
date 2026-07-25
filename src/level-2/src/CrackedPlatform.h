@@ -13,14 +13,16 @@ public:
         basePosition = sprite.getPosition(); // remember its resting spot so shake can offset from it
     }
 
-    void triggerCrack()
+    bool triggerCrack()
     {
         if (!isCracking && !hasFallen)
         {
             isCracking = true;//starts the countdown to fall
             timer = crackDelay;
             shakeTime = 0.f;
+            return true; // this call actually triggered it
         }
+        return false; // was already cracking/fallen, nothing new happened
     }
 
     void update(float dt) override//Override allows derived class to provide its own implementation of a virtual function.

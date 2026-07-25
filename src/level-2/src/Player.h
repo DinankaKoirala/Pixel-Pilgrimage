@@ -56,6 +56,19 @@ public:
         }
         wasOnGroundLastFrame = onGround;
 
+        // Ease current run speed toward whatever ceiling the coins have
+        // pushed it to - this is what makes each pickup feel gradual
+        // instead of an instant jump.
+        moveSpeed += (targetMoveSpeed - moveSpeed) * std::min(1.f, speedSmoothing * dt);
+        if (onGround)
+        {
+            coyoteTimer = coyoteTime;
+        }
+        else
+        {
+            coyoteTimer -= dt;
+        }
+
         // Apply gravity
         velocity.y += gravity * dt;
 
@@ -89,13 +102,30 @@ public:
         velocity.x = 0.f;
     }
 
+    // Nudges the speed CEILING up by `amount` (capped at maxMoveSpeed).
+    // The actual moveSpeed then eases toward that ceiling over the next
+    // few frames in update(), instead of jumping instantly - so each coin
+    // feels like a gradual speed-up rather than a sudden teleport.
+    void boostSpeed(float amount)
+    {
+        targetMoveSpeed = std::min(targetMoveSpeed + amount, maxMoveSpeed);
+    }
+
+    // Back to the starting speed - call on restart.
+    void resetSpeed()
+    {
+        moveSpeed = baseMoveSpeed;
+        targetMoveSpeed = baseMoveSpeed;
+    }
+
     void jump()
     {
-        if (onGround)
+        if (coyoteTimer > 0.f)
         {
             velocity.y = jumpSpeed;
             onGround = false;
-            takeoffSquashTimer = squashDuration; // little spring-off-the-ground pop
+            coyoteTimer = 0.f;          // Prevent double jumps
+            takeoffSquashTimer = squashDuration;
         }
     }
 
@@ -115,8 +145,29 @@ public:
     sf::Vector2f velocity{ 0.f, 0.f };
 
     bool onGround = false;
+    void bufferJump()
+    {
+        jumpBufferTimer = jumpBufferTime;
+    }
+
+    void updateJumpBuffer(float dt)
+    {
+        if (jumpBufferTimer > 0.f)
+            jumpBufferTimer -= dt;
+    }
+
+    bool hasBufferedJump() const
+    {
+        return jumpBufferTimer > 0.f;
+    }
+
+    void clearJumpBuffer()
+    {
+        jumpBufferTimer = 0.f;
+    }
 
 private:
+    
     // Decides which pose SHOULD be showing right now, and swaps the
     // texture only when the pose actually changes.
     void updateAnimationState()
@@ -249,8 +300,18 @@ private:
     // Your art is ~130-200px tall; tune this until the character looks
     // right next to your 64px-wide platform blocks. Start here and adjust.
     const float spriteScale = 0.45f;
+    float jumpBufferTimer = 0.f;
+    const float jumpBufferTime = 0.18f;
+    float coyoteTimer = 0.f;
+    const float coyoteTime = 0.10f;
 
     const float gravity = 900.f;
-    const float moveSpeed = 150.f;
-    const float jumpSpeed = -450.f;
+    const float jumpSpeed = -500.f;
+
+    // --- coin-driven speed ramp ---
+    float moveSpeed = 150.f;             // current speed actually applied in moveLeft/moveRight
+    float targetMoveSpeed = 150.f;       // ceiling moveSpeed eases toward; raised by boostSpeed()
+    const float baseMoveSpeed = 150.f;   // what resetSpeed() restores
+    const float maxMoveSpeed = 260.f;    // hard cap so it doesn't get out of hand
+    const float speedSmoothing = 1.5f;   // higher = faster ramp-up per coin
 };

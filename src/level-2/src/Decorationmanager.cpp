@@ -2,11 +2,14 @@
 #include "DecorationManager.h"
 #include <cstdlib>
 #include <cmath>
+//background controller 
+//Initialization should happen only once. 
+//keeps the constructor simple and allows error checking when loading textures 
 
 bool DecorationManager::init(const std::string& assetsPath, float levelEnd)
 {
-    if (!loadTextures(assetsPath)) return false;
-    build(levelEnd);
+    if (!loadTextures(assetsPath)) return false;//loads all image files 
+    build(levelEnd);//creates all decoration objects 
     return true;
 }
 
@@ -18,7 +21,7 @@ bool DecorationManager::loadTextures(const std::string& assetsPath)
     const std::string cloudFiles[3] = { "cloud1.png", "cloud2.png", "cloud3.png" };
 
     for (int i = 0; i < 3; ++i)
-    {
+    { //Arrays allow storing multiple texture variations and selecting them randomly later.
         if (!hillTex[i].loadFromFile(assetsPath + hillFiles[i]))   return false;
         if (!treeTex[i].loadFromFile(assetsPath + treeFiles[i]))   return false;
         if (!trunkTex[i].loadFromFile(assetsPath + trunkFiles[i])) return false;
@@ -34,25 +37,25 @@ bool DecorationManager::loadTextures(const std::string& assetsPath)
 }
 
 void DecorationManager::build(float levelEnd)
-{
+{ //Remove old decorations before rebuilding.
     hills.clear();
     trunks.clear();
     grass.clear();
-    trees.clear();
+    trees.clear(); 
     clouds.clear();
     sky.clear();
     birds.clear();
 
-    const float groundY = 600.f;
+    const float groundY = 600.f;//ground positions 
     const float hillGroundY = 470.f;
     const float treeGroundY = groundY - 130.f;
 
-    for (float hx = -500.f; hx < levelEnd; hx += 500.f)
+    for (float hx = -500.f; hx < levelEnd; hx += 500.f)//creates hill every 500 pixels 
     {
         int variant = rand() % 3;
         hills.push_back(std::make_unique<Decoration>(
-            hillTex[variant], sf::Vector2f(hx, hillGroundY), 0.25f));
-    }
+            hillTex[variant], sf::Vector2f(hx, hillGroundY), 0.25f));//moves slower 
+	} //smaller value moves far away with objects slower than the camera, creating a parallax effect
 
     for (float tx = -450.f; tx < levelEnd; tx += 260.f)
     {
@@ -60,30 +63,13 @@ void DecorationManager::build(float levelEnd)
         trees.push_back(std::make_unique<SwayingTree>(
             treeTex[variant], sf::Vector2f(tx, treeGroundY), 0.55f));
 
-        // Bottom-anchored at groundY (the platform's top surface, y=600) -
-        // NOT beyond it, so it bridges the gap up to the tree above without
-        // ever dipping into/overlapping the wooden platform blocks.
-        // Same variant index as its tree, so the width always matches.
-        // scaleX = 0.5f narrows the trunk to half its native width while
-        // keeping full height - tweak between ~0.4-0.6 to match your tree art.
+       
         trunks.push_back(std::make_unique<Decoration>(
             trunkTex[variant], sf::Vector2f(tx, groundY), 0.55f,
-            /*centerOrigin=*/false, /*scale=*/1.f, /*scaleX=*/0.5f));
+            /*centerOrigin=*/false, /*scale=*/1.f, /*scaleX=*/0.5f));//scalex makes trunk thinner 
     }
 
-    // Continuous strip of ground grass, tiled across the whole level like the
-    // sky background is in Game::render(). parallaxFactor = 1.f (NOT the
-    // 0.55f used by trees/trunks) so it scrolls in perfect lockstep with the
-    // platforms/trunks instead of slowly drifting apart from them over a long
-    // level. Bottom-anchored at groundY, same as the trunks/platforms, so its
-    // bottom edge sits flush with the platform top and never overlaps it -
-    // it only grows upward from there, burying the trunk bases.
-    //
-    // grassTileWidth is a guess at grass.png's width - tune it (and scaleX
-    // below) once you have the real asset so tiles butt up cleanly instead of
-    // leaving gaps or over-stacking. Deliberately overlapping tiles slightly
-    // (scaleX > 1) hides minor width mismatches so it still reads as one
-    // continuous band of grass even before that's dialed in.
+    
     const float grassTileWidth = 128.f;
     for (float gx = -500.f; gx < levelEnd; gx += grassTileWidth)
     {
@@ -96,12 +82,12 @@ void DecorationManager::build(float levelEnd)
 
     const float cloudHeights[3] = { 80.f, 130.f, 180.f };
     int cloudSlot = 0;
-    for (float cx = -500.f; cx < levelEnd; cx += 400.f)
+    for (float cx = -500.f; cx < levelEnd; cx += 400.f)//after 400 pixels 
     {
         // The sun sits at a fixed screen position (its parallax factor is 0),
         // so a cloud spawned right next to it in world space would render
         // right on top of it. Skip that slot so they don't overlap.
-        if (std::fabs(cx - sunX) < 300.f)
+        if (std::fabs(cx - sunX) < 300.f)//fabs() gives absolute distance regardless of sign.
         {
             cloudSlot++;
             continue;
@@ -132,9 +118,7 @@ void DecorationManager::build(float levelEnd)
 
 void DecorationManager::update(float cameraX, float dt)
 {
-    // animate() first (sway/bob/drift/loop set animOffset & animRotationDeg),
-    // then updateParallax() applies both the camera-driven position AND
-    // whatever animate() just computed.
+    
     for (auto& s : sky) { s->animate(dt); s->updateParallax(cameraX); }
     for (auto& b : birds) { b->animate(dt); b->updateParallax(cameraX); }
     for (auto& c : clouds) { c->animate(dt); c->updateParallax(cameraX); }

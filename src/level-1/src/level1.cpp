@@ -9,6 +9,8 @@
 #include "background.h"
 #include "coin.h"
 #include "runLevel2.h"
+#include "audioManager.h"
+#include "deathscreen.h"
 
 int main()
 {
@@ -97,6 +99,35 @@ int main()
         sf::Font completeFont;
         bool fontLoaded = completeFont.openFromFile("../src/level-1/assets/fonts/Helvetica.ttf");
 
+        sf::Text scoreText(completeFont, "SCORE: 0", 28);
+        scoreText.setFillColor(sf::Color(255, 215, 0));
+        scoreText.setOutlineColor(sf::Color::Black);
+        scoreText.setOutlineThickness(2.f);
+        scoreText.setPosition({ 1085.f, 18.f });
+
+        sf::RectangleShape scorePanel({ 250.f, 65.f });
+        scorePanel.setPosition({ 1015.f, 10.f });
+        scorePanel.setFillColor(sf::Color(0, 0, 0, 170));
+        scorePanel.setOutlineThickness(3.f);
+        scorePanel.setOutlineColor(sf::Color(255, 215, 0));
+
+        sf::Texture uiCoinTex;
+        if (!uiCoinTex.loadFromFile("../src/level-1/assets/textures/collectible.png")) {
+            std::cout << "Failed to load ui coin texture!" << std::endl;
+        }
+        sf::Sprite scoreCoin(uiCoinTex);
+        scoreCoin.setTextureRect(sf::IntRect({0, 0}, {32, 32}));
+        scoreCoin.setPosition({ 1035.f, 25.f });
+
+        sf::Texture heartTex;
+        if (!heartTex.loadFromFile("../src/level-1/assets/textures/heart.png")) {
+            std::cout << "Failed to load heart texture!" << std::endl;
+        }
+        sf::Sprite heartSprite(heartTex);
+        heartSprite.setPosition({ 20.f, 20.f });
+
+        DeathScreen deathScreen(1280.f, 720.f, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf");
+
         bool transitionReady = false;
 
         while (window.isOpen() && !transitionReady)
@@ -105,6 +136,24 @@ int main()
             {
                 if (event->is<sf::Event::Closed>())
                     window.close();
+                else if (const auto* mouseclick = event->getIf<sf::Event::MouseButtonPressed>()) {
+                    if (!playerAlive && mouseclick->button == sf::Mouse::Button::Left) {
+                        DeathScreenResult result = deathScreen.getInput(sf::Vector2f(mouseclick->position));
+                        if (result == DeathScreenResult::Exit) {
+                            window.close();
+                        } else if (result == DeathScreenResult::Restart) {
+                            player.reset(playerSpawn.x, playerSpawn.y);
+                            for (size_t i = 0; i < enemies.size(); i++) {
+                                enemies[i].reset(enemySpawns[i].x, enemySpawns[i].y);
+                            }
+                            for (size_t i = 0; i < coins.size(); i++) {
+                                coins[i].reset(coinSpawns[i].x, coinSpawns[i].y);
+                            }
+                            Coin::coinsCollected = 0;
+                            playerAlive = true;
+                        }
+                    }
+                }
             }
 
             float dt = clock.restart().asSeconds();
@@ -122,24 +171,30 @@ int main()
                         playerAlive = false;
                         audio.playSFX("hurt");
                     }
-                    if (player.getPosition().y + 32 >= 720) {
+                }
+
+                if (player.getPosition().y + 32 >= 720) {
+                    playerAlive = false;
+                    audio.playSFX("hurt");
+                }
+                for (const sf::FloatRect& trap : traps) {
+                    if (auto overlap = player.getPlayerHitbox().findIntersection(trap)) {
                         playerAlive = false;
                         audio.playSFX("hurt");
                     }
-                    for (const sf::FloatRect& trap : traps) {
-                        if (auto overlap = player.getPlayerHitbox().findIntersection(trap)) {
-                            playerAlive = false;
+                }
+
+                for (Coin& coin : coins) {
+                    if (!coin.isCollected()) {
+                        if (auto overlap = player.getPlayerHitbox().findIntersection(coin.getCoinHitbox())) {
+                            coin.collect();
                             audio.playSFX("hurt");
                         }
                     }
                 }
 
-                for (Coin& coin : coins) {
-                    if (auto overlap = player.getPlayerHitbox().findIntersection(coin.getCoinHitbox())) {
-                        coin.collect();
-                        audio.playSFX("hurt");
-                    }
-                }
+                int score = (int)player.getPosition().x + Coin::coinsCollected * 100;
+                scoreText.setString("SCORE: " + std::to_string(score));
 
                 sf::FloatRect playerBox = player.getPlayerHitbox();
                 float playerRight = playerBox.position.x + playerBox.size.x;
@@ -173,7 +228,7 @@ int main()
             background.draw(window, camera.getCenter().x);
             tilemap.draw(window);
 
-            if (!levelComplete) {
+            if (!levelComplete && playerAlive) {
                 player.draw(window);
 
                 for (Enemy& enemy : enemies) {
@@ -184,6 +239,17 @@ int main()
                         coin.draw(window);
                     }
                 }
+
+                window.setView(window.getDefaultView());
+                window.draw(scorePanel);
+                window.draw(scoreCoin);
+                window.draw(scoreText);
+                window.draw(heartSprite);
+                window.setView(camera);
+            } else if (!levelComplete && !playerAlive) {
+                window.setView(window.getDefaultView());
+                deathScreen.draw(window);
+                window.setView(camera);
             } else {
                 sf::RectangleShape overlay({1280.f, 720.f});
                 overlay.setFillColor(sf::Color(0, 0, 0, 200));

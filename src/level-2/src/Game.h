@@ -12,6 +12,7 @@
 #include "StarSpawner.h"
 #include "DecorationManager.h"
 #include "Coin.h"
+#include "deathscreen.h"
 #include <SFML/Audio.hpp>
 
 // Owns and runs the entire game: the window, the game loop, and every
@@ -47,6 +48,8 @@ private:
     DecorationManager decorations;
 
     Player player;
+    DeathScreen deathScreen;
+
     //sound
     sf::SoundBuffer coinBuffer;
     std::optional<sf::Sound> coinSound;

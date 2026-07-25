@@ -9,9 +9,10 @@
 Game::Game()//constructor initializes the game window, view, and other members
     : window(sf::VideoMode({ 1280u, 720u }), " Bridge Level")//window creation 
     , view(sf::FloatRect({ 0.f, 0.f }, { 1280.f, 720.f }))//creates a camera the camera follows the player 
-    , assetsPath("assets/")
+    , assetsPath("../src/level-2/assets/")
     , background(bgTex)
     , player(sf::Vector2f(150.f, 550.f))//player starts at 150,550
+    , deathScreen(1280.f, 720.f, "../src/level-2/assets/Vipnagorgialla Bd.otf")
 {
     std::srand(static_cast<unsigned>(std::time(nullptr)));//without this always gives same pattern 
     window.setView(view);//with this trees different cloud different ...
@@ -126,17 +127,38 @@ void Game::processEvents()
             window.close();
         }
 
+        if (const auto* mouseclick = event->getIf<sf::Event::MouseButtonPressed>())
+        {
+            if (gameOver && mouseclick->button == sf::Mouse::Button::Left)
+            {
+                DeathScreenResult result = deathScreen.getInput(sf::Vector2f(mouseclick->position));
+                if (result == DeathScreenResult::Exit)
+                {
+                    window.close();
+                }
+                else if (result == DeathScreenResult::Restart)
+                {
+                    restartGame(player, platforms, ninjaStars, coins, starSpawner, gameOver, blockTex, crackedTex, coinTex);
+                    gameWon = false;
+                    crackedPlatformsPassed = 0;
+                    score = 0;
+                    scoreText.setString("Score: 0");
+                }
+            }
+        }
+
         if (const auto* key = event->getIf<sf::Event::KeyPressed>())
         {
-
-            if (key->code == sf::Keyboard::Key::R && (gameOver || gameWon))
+            if (key->code == sf::Keyboard::Key::R &&
+                (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LControl) ||
+                 sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RControl)))
             {
                 restartGame(player, platforms, ninjaStars, coins, starSpawner, gameOver, blockTex, crackedTex, coinTex);
                 gameWon = false;
                 crackedPlatformsPassed = 0;
                 score = 0;
                 scoreText.setString("Score: 0");
-            }//calls restart game 
+            }
         }
     }
 }
@@ -156,7 +178,7 @@ void Game::update(float dt)//runs every functiom
     { // move player shitttttts
         player.stopHorizontal();
         player.moveRight();
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
         {
             player.bufferJump();
         }
@@ -411,6 +433,12 @@ void Game::render()
     }
 
     window.draw(scoreText);
+
+    if (gameOver)
+    {
+        deathScreen.draw(window);
+    }
+
     window.setView(view);
 
     window.display();

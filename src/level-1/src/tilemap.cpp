@@ -190,8 +190,8 @@ std::vector<sf::FloatRect> Tilemap::getTrapHitboxes() const {
             TileType tile = tileGrid[rows][cols];
             if(tile == TileType::Trigger){
                 sf::FloatRect rect(
-                    {(float)(cols*TileSize) + 10.f, (float)(rows*TileSize) + 10.f},
-                    {(float)TileSize - 20.f, (float)TileSize - 20.f}
+                    {(float)(cols*TileSize) + 10.f, (float)(rows*TileSize)},
+                    {(float)TileSize - 20.f, (float)TileSize}
                 );
                 traps.push_back(rect);
             }

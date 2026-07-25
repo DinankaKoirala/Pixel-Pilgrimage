@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.20)
 project(PixelPilgrimage LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -28,8 +28,9 @@ add_executable(PixelPilgrimage
     src/level-1/src/enemy.cpp
     src/level-1/src/player.cpp
     src/level-1/src/tilemap.cpp
+    src/shared/DeathScreen.cpp
 )
-target_include_directories(PixelPilgrimage PRIVATE src/level-1/src/Header src)
+target_include_directories(PixelPilgrimage PRIVATE src/level-1/src/Header src src/shared src/shared/Header)
 target_link_libraries(PixelPilgrimage PRIVATE SFML::Graphics SFML::Audio)
 
 # Load assets directly from source, no copying needed
@@ -43,8 +44,9 @@ add_executable(PixelPilgrimage_level2
     src/level-2/src/Decorationmanager.cpp
     src/level-2/src/Starspawner.cpp
     src/level-2/src/Level.cpp
+    src/shared/DeathScreen.cpp
 )
-target_include_directories(PixelPilgrimage_level2 PRIVATE src/level-2/src)
+target_include_directories(PixelPilgrimage_level2 PRIVATE src/level-2/src src/shared src/shared/Header)
 target_link_libraries(PixelPilgrimage_level2 PRIVATE SFML::Graphics SFML::Audio)
 
 # Copy Level 2 assets next to its exe

@@ -7,10 +7,10 @@ class Coin{
     sf::FloatRect hitbox;
     sf::Sprite sprite;
     sf::Texture coinTexture;
-    static int coinsCollected;
     bool collected = false;
 
     public:
+    static int coinsCollected;
     Coin(float coinOriginX , float coinOriginY);
     void update();
     bool loadTextures(const std::string& path);

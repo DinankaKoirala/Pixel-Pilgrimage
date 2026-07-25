@@ -2,16 +2,19 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <memory>
+#include <optional>
 #include "Knight.hpp"
 #include "Villain.hpp"
 #include "Princess.hpp"
 #include "Projectile.hpp"
+#include "death-screen/DeathScreen.h"
+#include "win/WinScreen.h"
 
 enum class GameState {
-    Intro,     // villain carries the princess up the slope
-    Playing,   // knight climbs, villain attacks
-    Won,       // knight reached the top
-    GameOver   // knight ran out of lives
+    Intro,
+    Playing,
+    Won,
+    GameOver
 };
 
 class Game {
@@ -28,12 +31,12 @@ private:
 
     sf::RenderWindow m_window;
     sf::Texture m_backgroundTexture;
-    sf::Sprite m_backgroundSprite;
+    std::optional<sf::Sprite> m_backgroundSprite;
 
     sf::Font m_font;
     bool m_fontLoaded;
-    sf::Text m_hudText;
-    sf::Text m_messageText;
+    sf::Text m_hudText{m_font, "", 22};
+    sf::Text m_messageText{m_font, "", 36};
 
     Knight m_knight;
     Villain m_villain;
@@ -41,5 +44,10 @@ private:
     std::vector<std::unique_ptr<Projectile>> m_projectiles;
 
     GameState m_state;
-    float m_introSpeed; // fraction of the slope the villain covers per second during intro
+    float m_introSpeed;
+
+    DeathScreen m_deathScreen;
+    WinScreen m_winScreen;
+    bool m_deathHandled = false;
+    bool m_winHandled = false;
 };

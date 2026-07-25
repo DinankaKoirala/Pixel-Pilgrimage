@@ -1,6 +1,7 @@
 // Game.cpp
 #include "Game.h"
 #include "Level.h"
+#include "runLevel3.h"
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
@@ -112,10 +113,10 @@ void Game::run()
             {
                 window.close();
             }
-            // BackToMenu: just close so level1's start screen shows
             else if (wr == WinScreenResult::BackToMenu)
             {
                 window.close();
+                runLevel3();
             }
         }
     }

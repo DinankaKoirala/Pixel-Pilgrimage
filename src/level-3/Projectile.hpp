@@ -45,22 +45,22 @@ public:
     RollingStone(sf::Vector2f position, sf::Vector2f velocity)
         : Projectile(position, velocity)
     {
-        m_texture = Utility::loadTextureOrPlaceholder("assets/stone.png", sf::Color(110, 110, 110));
-        m_sprite.setTexture(m_texture);
+        m_texture = Utility::loadTextureOrPlaceholder("../src/level-3/assets/stone.png", sf::Color(110, 110, 110));
+        (void)m_sprite.setTexture(m_texture);
 
         sf::Vector2u size = m_texture.getSize();
-        m_sprite.setOrigin(size.x / 2.f, size.y / 2.f);
+        m_sprite.setOrigin({size.x / 2.f, size.y / 2.f});
 
         float targetSize = 40.f;
         float scale = targetSize / static_cast<float>(std::max(size.x, size.y));
-        m_sprite.setScale(scale, scale);
+        m_sprite.setScale({scale, scale});
         m_sprite.setPosition(position);
     }
 
     void update(float dt) override {
         Projectile::update(dt);
         m_rotation += m_rollSpeed * dt;
-        m_sprite.setRotation(m_rotation);
+        m_sprite.setRotation(sf::degrees(m_rotation));
     }
 
     float getRadius() const override { return 20.f; }
@@ -78,21 +78,21 @@ public:
     Arrow(sf::Vector2f position, sf::Vector2f velocity)
         : Projectile(position, velocity)
     {
-        m_texture = Utility::loadTextureOrPlaceholder("assets/arrow.png", sf::Color(80, 50, 20));
-        m_sprite.setTexture(m_texture);
+        m_texture = Utility::loadTextureOrPlaceholder("../src/level-3/assets/arrow.png", sf::Color(80, 50, 20));
+        (void)m_sprite.setTexture(m_texture);
 
         sf::Vector2u size = m_texture.getSize();
         // Origin on the left-center, so rotation pivots around the nock
         // end and the arrow visually points along its direction of travel.
-        m_sprite.setOrigin(0.f, size.y / 2.f);
+        m_sprite.setOrigin({0.f, size.y / 2.f});
 
         float targetLength = 45.f;
         float scale = targetLength / static_cast<float>(size.x);
-        m_sprite.setScale(scale, scale);
+        m_sprite.setScale({scale, scale});
         m_sprite.setPosition(position);
 
         float angle = std::atan2(velocity.y, velocity.x) * 180.f / 3.14159265f;
-        m_sprite.setRotation(angle);
+        m_sprite.setRotation(sf::degrees(angle));
     }
 
     float getRadius() const override { return 10.f; }

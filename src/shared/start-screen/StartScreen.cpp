@@ -10,8 +10,8 @@ StartScreen::StartScreen(float width, float height, const std::string& assetsPat
         }
     }
 
-    if (!bgTex.loadFromFile("../start-screen/background.png")) {
-        if (!bgTex.loadFromFile(assetsPath + "textures/background.png")) {
+    if (!bgTex.loadFromFile("../src/start-screen/background.png")) {
+        if (!bgTex.loadFromFile(assetsPath + "/background.png")) {
             std::cout << "Could not load start screen background" << std::endl;
         }
     }

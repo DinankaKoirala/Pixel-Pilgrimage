@@ -17,9 +17,8 @@ namespace Utility {
         std::cerr << "[Warning] Could not load \"" << path
                   << "\" - using a placeholder color instead.\n";
 
-        sf::Image image;
-        image.create(64, 64, fallbackColor);
-        texture.loadFromImage(image);
+        sf::Image image({64u, 64u}, fallbackColor);
+        (void)texture.loadFromImage(image);
         return texture;
     }
 

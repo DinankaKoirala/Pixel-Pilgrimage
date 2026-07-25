@@ -15,14 +15,14 @@ Villain::Villain(sf::Vector2f slopeStart, sf::Vector2f slopeEnd)
       m_arrowSpeed(430.f)
 {
     m_texture = Utility::loadTextureOrPlaceholder("../src/level-3/assets/villain.png", sf::Color(160, 30, 30));
-    m_sprite.setTexture(m_texture);
+    (void)m_sprite.setTexture(m_texture);
 
     sf::Vector2u size = m_texture.getSize();
-    m_sprite.setOrigin(size.x / 2.f, size.y / 2.f);
+    m_sprite.setOrigin({size.x / 2.f, size.y / 2.f});
 
     float targetHeight = 100.f;
     float scale = targetHeight / static_cast<float>(size.y);
-    m_sprite.setScale(scale, scale);
+    m_sprite.setScale({scale, scale});
 
     updateBasePosition();
     m_sprite.setPosition(m_slopeStart);

@@ -20,6 +20,6 @@ public:
     }
 
 protected:
-    sf::Texture m_texture; // owned here so the sprite's texture pointer stays valid
-    sf::Sprite m_sprite;
+    sf::Texture m_texture;
+    sf::Sprite m_sprite{m_texture};
 };

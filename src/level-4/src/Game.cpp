@@ -1,0 +1,269 @@
+#include "Game.hpp"
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+
+Game4::Game4()
+    : window(sf::VideoMode({(unsigned)SW, (unsigned)SH}), "Winter Journey")
+    , deathScreen(SW, SH, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
+    , winScreen(SW, SH, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
+    , gameSpeed(BASE_SPEED)
+    , score(0)
+    , coinCount(0)
+    , lives(3)
+    , gameOver(false)
+    , gameWon(false)
+    , deathHandled(false)
+    , winHandled(false)
+    , spawnTimer(0)
+    , treeTimer(0)
+    , deerTimer(0)
+    , giantTimer(0)
+    , distTimer(0)
+{
+    window.setFramerateLimit(60);
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
+    trees.emplace_back(SW * 0.3f, 1.1f);
+    trees.emplace_back(SW * 0.6f, 0.8f);
+    trees.emplace_back(SW * 0.9f, 1.0f);
+}
+
+void Game4::run() {
+    while (window.isOpen()) {
+        float dt = clock.restart().asSeconds();
+        if (dt > 1.f / 30.f) dt = 1.f / 30.f;
+
+        processEvents();
+        update(dt);
+        render();
+
+        if (gameWon && !winHandled) {
+            WinScreenResult result = winScreen.run(window);
+            if (result == WinScreenResult::Exit || result == WinScreenResult::BackToMenu) {
+                winHandled = true;
+            }
+        }
+    }
+}
+
+void Game4::processEvents() {
+    while (const std::optional event = window.pollEvent()) {
+        if (event->is<sf::Event::Closed>()) {
+            window.close();
+        }
+
+        if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+            if (!gameOver && !gameWon) {
+                if (key->code == sf::Keyboard::Key::Space ||
+                    key->code == sf::Keyboard::Key::Up ||
+                    key->code == sf::Keyboard::Key::W) {
+                    player.jump();
+                }
+            }
+            if (key->code == sf::Keyboard::Key::R && gameOver) {
+                player = Player();
+                lives = 3;
+                score = 0;
+                coinCount = 0;
+                gameOver = false;
+                deathHandled = false;
+                coins.clear();
+                rocks.clear();
+                deerEnemies.clear();
+                giants.clear();
+                gameSpeed = BASE_SPEED;
+                spawnTimer = treeTimer = deerTimer = giantTimer = distTimer = 0;
+            }
+            if (key->code == sf::Keyboard::Key::Escape) {
+                window.close();
+            }
+        }
+
+        if (const auto* mbp = event->getIf<sf::Event::MouseButtonPressed>()) {
+            if (mbp->button == sf::Mouse::Button::Left && gameOver && !deathHandled) {
+                DeathScreenResult result = deathScreen.getInput(sf::Vector2f(mbp->position));
+                if (result == DeathScreenResult::Exit) {
+                    window.close();
+                } else if (result == DeathScreenResult::Restart) {
+                    player = Player();
+                    lives = 3;
+                    score = 0;
+                    coinCount = 0;
+                    gameOver = false;
+                    deathHandled = false;
+                    coins.clear();
+                    rocks.clear();
+                    deerEnemies.clear();
+                    giants.clear();
+                    gameSpeed = BASE_SPEED;
+                    spawnTimer = treeTimer = deerTimer = giantTimer = distTimer = 0;
+                }
+            }
+        }
+    }
+}
+
+void Game4::update(float dt) {
+    if (gameOver || gameWon) return;
+
+    gameSpeed += 2.f * dt;
+    if (gameSpeed > 350.f) gameSpeed = 350.f;
+
+    distTimer += dt;
+    score += (int)(gameSpeed * dt * 0.1f);
+
+    sky.update(dt);
+    snowfall.update(dt);
+    ground.update(dt, gameSpeed);
+
+    for (auto& t : trees) t.update(dt, gameSpeed);
+
+    spawnObjects(dt);
+
+    for (auto& c : coins) c.update(dt, gameSpeed);
+    for (auto& r : rocks) r.update(dt, gameSpeed);
+    for (auto& d : deerEnemies) d.update(dt, gameSpeed);
+    for (auto& g : giants) g.update(dt, gameSpeed);
+
+    player.update(dt);
+
+    checkCollisions();
+
+    coins.erase(std::remove_if(coins.begin(), coins.end(),
+        [](const Coin& c) { return c.x < -50.f; }), coins.end());
+    rocks.erase(std::remove_if(rocks.begin(), rocks.end(),
+        [](const Rock& r) { return r.x < -60.f; }), rocks.end());
+    deerEnemies.erase(std::remove_if(deerEnemies.begin(), deerEnemies.end(),
+        [](const DeerEnemy& d) { return !d.active; }), deerEnemies.end());
+    giants.erase(std::remove_if(giants.begin(), giants.end(),
+        [](const Giant& g) { return !g.active; }), giants.end());
+
+    if (score >= WIN_SCORE && !gameWon) {
+        gameWon = true;
+        winHandled = false;
+    }
+}
+
+void Game4::spawnObjects(float dt) {
+    treeTimer += dt;
+    if (treeTimer > 2.5f) {
+        treeTimer = 0;
+        float sc = 0.7f + (std::rand() % 60) / 100.f;
+        trees.emplace_back(SW + 80.f, sc);
+    }
+
+    spawnTimer += dt;
+    float coinInterval = std::max(0.6f, 1.8f - gameSpeed * 0.002f);
+    if (spawnTimer > coinInterval) {
+        spawnTimer = 0;
+        float cx = SW + 30.f;
+        float cy = groundYat(cx) - 40.f - (std::rand() % 60);
+        coins.emplace_back(cx, cy);
+    }
+
+    float rockInterval = std::max(0.8f, 2.5f - gameSpeed * 0.003f);
+    if (spawnTimer > rockInterval * 0.5f && (std::rand() % 100) < 2) {
+        rocks.emplace_back(SW + 30.f);
+    }
+
+    deerTimer += dt;
+    float deerInterval = std::max(3.f, 7.f - gameSpeed * 0.005f);
+    if (deerTimer > deerInterval) {
+        deerTimer = 0;
+        if (deerEnemies.empty() || !deerEnemies.back().active) {
+            deerEnemies.emplace_back();
+            deerEnemies.back().spawn();
+        }
+    }
+
+    giantTimer += dt;
+    float giantInterval = std::max(5.f, 12.f - gameSpeed * 0.004f);
+    if (giantTimer > giantInterval) {
+        giantTimer = 0;
+        if (giants.empty() || !giants.back().active) {
+            giants.emplace_back();
+            giants.back().spawn();
+        }
+    }
+}
+
+void Game4::checkCollisions() {
+    sf::FloatRect pb = player.bounds();
+
+    for (auto& c : coins) {
+        if (c.collected) continue;
+        if (pb.findIntersection(c.bounds())) {
+            c.collected = true;
+            coinCount++;
+            score += 50;
+            player.setYetiMode(coinCount % 10 == 5);
+        }
+    }
+
+    for (auto& r : rocks) {
+        if (r.counted) continue;
+        if (pb.findIntersection(r.bounds())) {
+            r.counted = true;
+            lives--;
+            player.hit();
+            if (lives <= 0) {
+                gameOver = true;
+                deathHandled = false;
+                gameOverScreen.show();
+            }
+        }
+    }
+
+    for (auto& d : deerEnemies) {
+        if (!d.active || d.dead) continue;
+        if (pb.findIntersection(d.bounds())) {
+            d.dead = true;
+            d.active = false;
+            lives--;
+            player.hit();
+            if (lives <= 0) {
+                gameOver = true;
+                deathHandled = false;
+                gameOverScreen.show();
+            }
+        }
+    }
+
+    for (auto& g : giants) {
+        if (!g.active) continue;
+        if (pb.findIntersection(g.bounds())) {
+            lives--;
+            player.hit();
+            g.active = false;
+            if (lives <= 0) {
+                gameOver = true;
+                deathHandled = false;
+                gameOverScreen.show();
+            }
+        }
+    }
+}
+
+void Game4::render() {
+    window.clear();
+    sky.draw(window);
+    snowfall.draw(window);
+    ground.draw(window);
+
+    for (auto& t : trees) t.draw(window);
+    for (auto& c : coins) c.draw(window);
+    for (auto& r : rocks) r.draw(window);
+    for (auto& d : deerEnemies) d.draw(window);
+    for (auto& g : giants) g.draw(window);
+    player.draw(window);
+
+    hud.draw(window, score, coinCount, lives);
+
+    if (gameOver) {
+        deathScreen.draw(window);
+    }
+
+    window.display();
+}

@@ -1,42 +1,43 @@
 #include "Game.hpp"
 #include "Constants.hpp"
+#include "runLevel4.h"
 #include <sstream>
 #include <algorithm>
 #include <cmath>
 
 Game::Game()
-    : m_window(sf::VideoMode(Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT), "Rescue the Princess"),
-      m_knight(Constants::SLOPE_START, Constants::SLOPE_END),
-      m_villain(Constants::SLOPE_START, Constants::SLOPE_END),
-      m_princess(),
-      m_state(GameState::Intro),
-      m_introSpeed(0.35f)
+    : m_window(sf::VideoMode({(unsigned)Constants::WINDOW_WIDTH, (unsigned)Constants::WINDOW_HEIGHT}), "Rescue the Princess")
+    , m_knight(Constants::SLOPE_START, Constants::SLOPE_END)
+    , m_villain(Constants::SLOPE_START, Constants::SLOPE_END)
+    , m_princess()
+    , m_state(GameState::Intro)
+    , m_introSpeed(0.35f)
+    , m_deathScreen((float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
+    , m_winScreen((float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
 {
     m_window.setFramerateLimit(60);
 
-    if (m_backgroundTexture.loadFromFile("assets/background.png")) {
-        m_backgroundSprite.setTexture(m_backgroundTexture);
+    if (m_backgroundTexture.loadFromFile("../src/level-3/assets/background.png")) {
+        m_backgroundSprite.emplace(m_backgroundTexture);
         sf::Vector2u texSize = m_backgroundTexture.getSize();
-        m_backgroundSprite.setScale(
+        m_backgroundSprite->setScale({
             static_cast<float>(Constants::WINDOW_WIDTH) / texSize.x,
             static_cast<float>(Constants::WINDOW_HEIGHT) / texSize.y
-        );
+        });
     }
 
     m_fontLoaded =
-        m_font.loadFromFile("assets/font.ttf") ||
-        m_font.loadFromFile("C:/Windows/Fonts/arial.ttf") ||
-        m_font.loadFromFile("C:/Windows/Fonts/segoeui.ttf");
+        m_font.openFromFile("../src/level-1/assets/fonts/Helvetica.ttf") ||
+        m_font.openFromFile("C:/Windows/Fonts/arial.ttf") ||
+        m_font.openFromFile("C:/Windows/Fonts/segoeui.ttf");
 
     if (m_fontLoaded) {
-        m_hudText.setFont(m_font);
         m_hudText.setCharacterSize(22);
         m_hudText.setFillColor(sf::Color::White);
         m_hudText.setOutlineColor(sf::Color::Black);
         m_hudText.setOutlineThickness(1.f);
-        m_hudText.setPosition(20.f, 20.f);
+        m_hudText.setPosition({20.f, 20.f});
 
-        m_messageText.setFont(m_font);
         m_messageText.setCharacterSize(36);
         m_messageText.setFillColor(sf::Color::White);
         m_messageText.setOutlineColor(sf::Color::Black);
@@ -53,25 +54,47 @@ void Game::run() {
         processEvents();
         update(dt);
         render();
+
+        if (m_state == GameState::Won && !m_winHandled) {
+            WinScreenResult wr = m_winScreen.run(m_window);
+            if (wr == WinScreenResult::BackToMenu) {
+                m_winHandled = true;
+                m_window.close();
+                runLevel4();
+            } else if (wr == WinScreenResult::Exit) {
+                m_window.close();
+            }
+        }
     }
 }
 
 void Game::processEvents() {
-    sf::Event event;
-    while (m_window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) {
+    while (const std::optional event = m_window.pollEvent()) {
+        if (event->is<sf::Event::Closed>()) {
             m_window.close();
         }
-        if (event.type == sf::Event::KeyPressed) {
-            if (event.key.code == sf::Keyboard::Space && m_state == GameState::Playing) {
+
+        if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+            if (key->code == sf::Keyboard::Key::Space && m_state == GameState::Playing) {
                 m_knight.jump();
             }
-            if (event.key.code == sf::Keyboard::R &&
-                (m_state == GameState::GameOver || m_state == GameState::Won)) {
+            if (key->code == sf::Keyboard::Key::R &&
+                m_state == GameState::GameOver) {
                 restart();
             }
-            if (event.key.code == sf::Keyboard::Escape) {
+            if (key->code == sf::Keyboard::Key::Escape) {
                 m_window.close();
+            }
+        }
+
+        if (const auto* mbp = event->getIf<sf::Event::MouseButtonPressed>()) {
+            if (mbp->button == sf::Mouse::Button::Left && m_state == GameState::GameOver && !m_deathHandled) {
+                DeathScreenResult result = m_deathScreen.getInput(sf::Vector2f(mbp->position));
+                if (result == DeathScreenResult::Exit) {
+                    m_window.close();
+                } else if (result == DeathScreenResult::Restart) {
+                    restart();
+                }
             }
         }
     }
@@ -94,12 +117,12 @@ void Game::update(float dt) {
         return;
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
         m_knight.moveUp(dt);
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
         m_knight.moveDown(dt);
     }
 
@@ -122,8 +145,10 @@ void Game::update(float dt) {
 
     if (!m_knight.isAlive()) {
         m_state = GameState::GameOver;
+        m_deathHandled = false;
     } else if (m_knight.getProgress() >= 1.f) {
         m_state = GameState::Won;
+        m_winHandled = false;
     }
 }
 
@@ -134,7 +159,6 @@ void Game::checkCollisions() {
     for (auto& projectile : m_projectiles) {
         if (projectile->isDead()) continue;
 
-        // Jumping only dodges rolling stones, not arrows.
         if (m_knight.isJumping() && projectile->isStone()) continue;
 
         sf::Vector2f diff = knightPos - projectile->getPosition();
@@ -142,7 +166,7 @@ void Game::checkCollisions() {
 
         if (distance < knightRadius + projectile->getRadius()) {
             if (!m_knight.isInvulnerable()) {
-                m_knight.takeDamage(1); // one life per hit
+                m_knight.takeDamage(1);
             }
             projectile->kill();
         }
@@ -151,7 +175,7 @@ void Game::checkCollisions() {
 
 void Game::render() {
     m_window.clear(sf::Color::Black);
-    m_window.draw(m_backgroundSprite);
+    if (m_backgroundSprite) m_window.draw(*m_backgroundSprite);
 
     m_villain.draw(m_window);
     m_princess.draw(m_window);
@@ -173,17 +197,21 @@ void Game::render() {
         if (m_state == GameState::Intro) {
             m_messageText.setString("The villain has taken the princess! Catch him!");
         } else if (m_state == GameState::GameOver) {
-            m_messageText.setString("GAME OVER - Press R to try again");
+            m_messageText.setString("GAME OVER");
         } else if (m_state == GameState::Won) {
-            m_messageText.setString("You rescued the princess! Press R to play again");
+            m_messageText.setString("You rescued the princess!");
         }
 
         if (m_state != GameState::Playing) {
             sf::FloatRect bounds = m_messageText.getLocalBounds();
-            m_messageText.setPosition(
-                Constants::WINDOW_WIDTH / 2.f - bounds.width / 2.f, 40.f);
+            m_messageText.setPosition({
+                Constants::WINDOW_WIDTH / 2.f - bounds.size.x / 2.f, 40.f});
             m_window.draw(m_messageText);
         }
+    }
+
+    if (m_state == GameState::GameOver) {
+        m_deathScreen.draw(m_window);
     }
 
     m_window.display();
@@ -195,4 +223,6 @@ void Game::restart() {
     m_princess.followAnchor(m_villain.getPosition());
     m_projectiles.clear();
     m_state = GameState::Intro;
+    m_deathHandled = false;
+    m_winHandled = false;
 }

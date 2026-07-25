@@ -9,6 +9,8 @@
 #include "background.h"
 #include "coin.h"
 #include "runLevel2.h"
+#include "runLevel3.h"
+#include "runLevel4.h"
 #include "audioManager.h"
 #include "death-screen/DeathScreen.h"
 #include "start-screen/StartScreen.h"
@@ -327,6 +329,14 @@ int main()
             else if (mr == MapScreenResult::Level2)
             {
                 runLevel2();
+            }
+            else if (mr == MapScreenResult::Level3)
+            {
+                runLevel3();
+            }
+            else if (mr == MapScreenResult::Level4)
+            {
+                runLevel4();
             }
 
             window.create(sf::VideoMode({ 1280u, 720u }), "Pixel Pilgrimage");

@@ -128,6 +128,7 @@ WinScreenResult WinScreen::run(sf::RenderWindow& window)
 
         window.clear(sf::Color(150, 220, 150));
 
+        window.setView(window.getDefaultView());
         window.draw(overlay);
         window.draw(winBanner);
         window.draw(winTitle);

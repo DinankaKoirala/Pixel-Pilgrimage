@@ -22,6 +22,8 @@ endif()
 add_executable(PixelPilgrimage
     src/level-1/src/level1.cpp
     src/runLevel2.cpp
+    src/runLevel3.cpp
+    src/runLevel4.cpp
     src/level-1/src/audioManager.cpp
     src/level-1/src/background.cpp
     src/level-1/src/coin.cpp
@@ -46,10 +48,11 @@ add_executable(PixelPilgrimage_level2
     src/level-2/src/Decorationmanager.cpp
     src/level-2/src/Starspawner.cpp
     src/level-2/src/Level.cpp
+    src/runLevel3.cpp
     src/shared/death-screen/DeathScreen.cpp
     src/shared/win/WinScreen.cpp
 )
-target_include_directories(PixelPilgrimage_level2 PRIVATE src/level-2/src src/shared)
+target_include_directories(PixelPilgrimage_level2 PRIVATE src/level-2/src src/shared src)
 target_link_libraries(PixelPilgrimage_level2 PRIVATE SFML::Graphics SFML::Audio)
 
 # Copy Level 2 assets next to its exe
@@ -64,4 +67,53 @@ add_custom_command(TARGET PixelPilgrimage POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     "$<TARGET_FILE:PixelPilgrimage_level2>"
     "$<TARGET_FILE_DIR:PixelPilgrimage>/PixelPilgrimage_level2.exe"
+)
+
+# ── Level 3 ──────────────────────────────────────────────────────────────────
+add_executable(PixelPilgrimage_level3
+    src/level-3/main.cpp
+    src/level-3/Game.cpp
+    src/level-3/Knight.cpp
+    src/level-3/Villain.cpp
+    src/level-3/Princess.cpp
+    src/runLevel4.cpp
+    src/shared/death-screen/DeathScreen.cpp
+    src/shared/win/WinScreen.cpp
+)
+target_include_directories(PixelPilgrimage_level3 PRIVATE src/level-3 src/shared src)
+target_link_libraries(PixelPilgrimage_level3 PRIVATE SFML::Graphics SFML::Audio)
+
+add_custom_command(TARGET PixelPilgrimage_level3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${PROJECT_SOURCE_DIR}/src/level-3/assets"
+    "$<TARGET_FILE_DIR:PixelPilgrimage_level3>/assets"
+)
+
+add_custom_command(TARGET PixelPilgrimage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    "$<TARGET_FILE:PixelPilgrimage_level3>"
+    "$<TARGET_FILE_DIR:PixelPilgrimage>/PixelPilgrimage_level3.exe"
+)
+
+# ── Level 4 ──────────────────────────────────────────────────────────────────
+add_executable(PixelPilgrimage_level4
+    src/level-4/src/main.cpp
+    src/level-4/src/level4.cpp
+    src/level-4/src/Game.cpp
+    src/shared/death-screen/DeathScreen.cpp
+    src/shared/win/WinScreen.cpp
+)
+target_include_directories(PixelPilgrimage_level4 PRIVATE src/level-4/src src/level-4/src/Header src/shared)
+target_link_libraries(PixelPilgrimage_level4 PRIVATE SFML::Graphics SFML::Audio)
+
+add_custom_command(TARGET PixelPilgrimage_level4 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${PROJECT_SOURCE_DIR}/src/level-4/assets"
+    "$<TARGET_FILE_DIR:PixelPilgrimage_level4>/assets"
+)
+
+add_custom_command(TARGET PixelPilgrimage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    "$<TARGET_FILE:PixelPilgrimage_level4>"
+    "$<TARGET_FILE_DIR:PixelPilgrimage>/PixelPilgrimage_level4.exe"
 )

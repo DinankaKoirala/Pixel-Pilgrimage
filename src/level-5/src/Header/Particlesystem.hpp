@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cmath>
-#include "VertexUtils.hpp"
+#include "shared/VertexUtils.hpp"
 
 // ---------------------------------------------------------------------------
 // ParticleSystem.hpp

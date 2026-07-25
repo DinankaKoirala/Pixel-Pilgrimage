@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <cstdint>
-#include "VertexUtils.hpp"
+#include "shared/VertexUtils.hpp"
 
 // ---------------------------------------------------------------------------
 // Aura.hpp

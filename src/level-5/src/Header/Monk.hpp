@@ -15,7 +15,7 @@
 class Spell
 {
 public:
-    std::unique_ptr<sf::Shape> shape;
+    std::unique_ptr<sf::Sprite> shape;
     sf::Vector2f velocity;
 };
 
@@ -23,6 +23,7 @@ class Monk
 {
 private:
     sf::Texture monkTexture;
+    sf::Texture m_spellTexture;
     sf::Sprite monk;
 
     std::vector<Spell> spells;
@@ -48,6 +49,7 @@ private:
     float spawnTimer = 0.f;
     float spawnInterval = 0.7f;
     float spellSpeed;
+    float m_spellScale;
 
     // Off-screen culling box for spells. Must match the ACTUAL window size,
     // not the 800x600 design resolution -- otherwise spells spawned at a
@@ -66,7 +68,8 @@ public:
         float patrolSpeed_ = 0.6f,
         float hoverAmplitude_ = 15.f,
         float hoverSpeed_ = 1.4f,
-        float spellSpeed_ = 400.f,
+        float spellSpeed_ = 600.f,
+        float spellScale_ = 0.2,
         float cullMinX_ = -60.f,
         float cullMaxX_ = 860.f,
         float cullMinY_ = -60.f,
@@ -79,14 +82,20 @@ public:
         hoverAmplitude(hoverAmplitude_),
         hoverSpeed(hoverSpeed_),
         spellSpeed(spellSpeed_),
+        m_spellScale(spellScale_),
         cullMinX(cullMinX_),
         cullMaxX(cullMaxX_),
         cullMinY(cullMinY_),
         cullMaxY(cullMaxY_)
     {
-        if (!monkTexture.loadFromFile("Data/monk.png"))
+        if (!monkTexture.loadFromFile("level-5/assets/textures/monk.png"))
         {
             std::cerr << "Monk: failed to load Data/monk.png\n";
+        }
+
+        if (!m_spellTexture.loadFromFile("level-5/assets/textures/fireball.png"))
+        {
+            std::cerr << "Monk: failed to load fireball.png\n";
         }
 
         monk.setTexture(monkTexture, true); // refresh texture rect now that it's actually loaded
@@ -186,66 +195,26 @@ private:
     {
         Spell s;
 
-        // Spawn at the monk's staff
         sf::Vector2f spawnPos = getStaffTipPosition();
 
-        // Direction to player
         sf::Vector2f dir = target - spawnPos;
-
         float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-
         if (length == 0.f)
             return;
 
         dir /= length;
-
         s.velocity = dir * spellSpeed;
 
-        int type = rand() % 3;
+        auto spellSprite = std::make_unique<sf::Sprite>(m_spellTexture);
+        sf::Vector2u texSize = m_spellTexture.getSize();
+        spellSprite->setOrigin({ texSize.x / 2.f, texSize.y / 2.f });
+        spellSprite->setPosition(spawnPos);
+        spellSprite->setScale({ m_spellScale, m_spellScale });
 
-        if (type == 0)
-        {
-            auto tri = std::make_unique<sf::ConvexShape>();
+        float angle = std::atan2(dir.y, dir.x) * 180.f / 3.14159265f;
+        spellSprite->setRotation(sf::degrees(angle + 90.f));
 
-            tri->setPointCount(3);
-            tri->setPoint(0, { 0.f,-18.f });
-            tri->setPoint(1, { 16.f,16.f });
-            tri->setPoint(2, { -16.f,16.f });
-
-            tri->setFillColor(sf::Color(255, 80, 180));
-
-            tri->setOrigin({ 0.f,0.f });
-            tri->setPosition(spawnPos);
-
-            float angle = std::atan2(dir.y, dir.x) * 180.f / 3.14159265f;
-            tri->setRotation(sf::degrees(angle + 90.f));
-
-            s.shape = std::move(tri);
-        }
-        else if (type == 1)
-        {
-            auto rect = std::make_unique<sf::RectangleShape>(sf::Vector2f(28.f, 28.f));
-
-            rect->setOrigin({ 14.f,14.f });
-            rect->setFillColor(sf::Color::Cyan);
-            rect->setPosition(spawnPos);
-
-            float angle = std::atan2(dir.y, dir.x) * 180.f / 3.14159265f;
-            rect->setRotation(sf::degrees(angle));
-
-            s.shape = std::move(rect);
-        }
-        else
-        {
-            auto circle = std::make_unique<sf::CircleShape>(14.f);
-
-            circle->setOrigin({ 14.f,14.f });
-            circle->setFillColor(sf::Color::Yellow);
-            circle->setPosition(spawnPos);
-
-            s.shape = std::move(circle);
-        }
-
+        s.shape = std::move(spellSprite);
         spells.push_back(std::move(s));
     }
 };

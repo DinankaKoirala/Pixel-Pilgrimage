@@ -118,7 +118,7 @@ private:
         static sf::Texture texture;
         static bool loaded = false;
         if (!loaded) {
-            loaded = texture.loadFromFile("Data/dripstone.png");
+            loaded = texture.loadFromFile("level-5/assets/textures/dripstone.png");
             if (!loaded) {
                 std::cerr << "Failed to load dripstone.png\n";
             }

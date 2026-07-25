@@ -12,14 +12,14 @@
 #include <iostream>
 #include <string>
 #include <windows.h>
-#include "dripstone.h"
-#include "Monk.hpp"
-#include "ParticleSystem.hpp"
-#include "Aura.hpp"
-#include "timer.h"
-#include "HealthBar.hpp"
-#include "Lives.hpp"
-#include "SoundManager.hpp"
+#include "Header/dripstone.h"
+#include "Header/Monk.hpp"
+#include "Header/ParticleSystem.hpp"
+#include "Header/Aura.hpp"
+#include "shared/timer.h"
+#include "Header/HealthBar.hpp"
+#include "Header/Lives.hpp"
+#include "Header/SoundManager.hpp"
 
 // Player's collision box, smaller than the full sprite frame. Each run-cycle
 // frame is a fixed-size box with a lot of transparent padding around the
@@ -31,10 +31,10 @@ sf::FloatRect getPlayerHitbox(const sf::Sprite& sprite)
 {
     sf::FloatRect local = sprite.getLocalBounds(); // full frame, in texture pixels
 
-    const float insetLeftFrac = 0.40f;   // trim 30% off the left edge
-    const float insetRightFrac = 0.40f;  // trim 30% off the right edge
+    const float insetLeftFrac = 0.30f;   // trim 30% off the left edge
+    const float insetRightFrac = 0.30f;  // trim 30% off the right edge
     const float insetTopFrac = 0.30f;    // trim 15% off the top (hair/crown)
-    const float insetBottomFrac = 0.f; // trim 5% off the bottom
+    const float insetBottomFrac = 0.3f; // trim 5% off the bottom
 
     float trimLeft = local.size.x * insetLeftFrac;
     float trimRight = local.size.x * insetRightFrac;
@@ -98,7 +98,7 @@ int main()
 
 
     sf::Texture bgTexture;
-    if (!bgTexture.loadFromFile("Data/background.png"))
+    if (!bgTexture.loadFromFile("level-5/assets/textures/background.png"))
     {
         std::cerr << "Failed to load background.png\n";
     }
@@ -140,7 +140,7 @@ int main()
 
     sf::Texture playerTexture;
 
-    if (!playerTexture.loadFromFile("Data/prince.png"))
+    if (!playerTexture.loadFromFile("level-5/assets/textures/prince.png"))
     {
         return -1;
     }
@@ -184,7 +184,7 @@ int main()
     bool onGround = true;
 
     sf::Texture orbTexture;
-    if (!orbTexture.loadFromFile("Data/orb.png"))
+    if (!orbTexture.loadFromFile("level-5/assets/textures/orb.png"))
     {
         std::cerr << "Failed to load orb.png\n";
     }
@@ -196,7 +196,7 @@ int main()
     // Original orb was a 20.f-radius circle (40.f diameter) in design space.
     // Scale the sprite to match that same footprint, then apply sx/sy like
     // everything else so it stays consistent across screen resolutions.
-    const float orbDesignDiameter = 40.f;
+    const float orbDesignDiameter = 400.f;
     orb.setScale({
         (orbDesignDiameter * sx) / orbTexSize.x,
         (orbDesignDiameter * sy) / orbTexSize.y
@@ -205,7 +205,7 @@ int main()
     orb.setPosition({ 400.f * sx, 100.f * sy });
 
     sf::Texture fireballTexture;
-    if (!fireballTexture.loadFromFile("Data/fireball.png"))
+    if (!fireballTexture.loadFromFile("level-5/assets/textures/fireball.png"))
     {
         std::cerr << "Failed to load fireball.png\n";
     }
@@ -235,8 +235,8 @@ int main()
     // consistent across screen resolutions. Cull bounds use the ACTUAL
     // window size (not the 800x600 design resolution) or spells spawned
     // off a scaled-up staff position get deleted the same frame they fire.
-    Monk monk({ 600.f * sx, 200.f * sy }, 140.f * sx, 0.6f, 18.f * sy, 1.4f,
-        400.f * sx,
+    Monk monk({ 400.f * sx, 200.f * sy }, 400.f * sx, 0.6f, 18.f * sy, 1.4f,
+        400.f * sx, 0.3f,
         -60.f, static_cast<float>(win_l) + 60.f,
         -60.f, static_cast<float>(win_b) + 60.f);
 
@@ -246,9 +246,9 @@ int main()
     Aura staffAura(sf::Color(190, 120, 255), 16.f * sx);
     bool gameOver = false;
     sf::Font font;
-    bool fontLoaded = font.openFromFile("Data/OptimusPrinceps.ttf");
+    bool fontLoaded = font.openFromFile("level-5/assets/fonts/OptimusPrinceps.ttf");
     if (!fontLoaded)
-        fontLoaded = font.openFromFile("Data/Roboto-Medium.ttf");
+        fontLoaded = font.openFromFile("level-5/assets/fonts/Roboto-Medium.ttf");
 
     sf::Text gameOverText(font);
 
@@ -481,7 +481,7 @@ int main()
         else
         {
 
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R) && (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RControl)))
             {
                 gameOver = false;
 

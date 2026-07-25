@@ -44,6 +44,7 @@ int main()
         }
 
         std::vector<sf::FloatRect> solids = tilemap.getSolidTiles();
+        std::vector<sf::FloatRect> traps = tilemap.getTrapHitboxes();
 
         sf::Vector2f playerSpawn = tilemap.getPlayerSpawnPoint();
         Player player(playerSpawn.x, playerSpawn.y, audio);
@@ -124,6 +125,12 @@ int main()
                     if (player.getPosition().y + 32 >= 720) {
                         playerAlive = false;
                         audio.playSFX("hurt");
+                    }
+                    for (const sf::FloatRect& trap : traps) {
+                        if (auto overlap = player.getPlayerHitbox().findIntersection(trap)) {
+                            playerAlive = false;
+                            audio.playSFX("hurt");
+                        }
                     }
                 }
 

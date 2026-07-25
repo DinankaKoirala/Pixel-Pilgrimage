@@ -31,5 +31,6 @@ class Tilemap{
         sf::Vector2f getPlayerSpawnPoint() const;
         std::vector<sf::Vector2f> getCoinSpawnPoints() const;
         sf::Vector2f getLevelEndPoint() const;
+        std::vector<sf::FloatRect> getTrapHitboxes() const;
 
 };

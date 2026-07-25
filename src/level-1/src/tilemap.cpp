@@ -95,19 +95,6 @@ void Tilemap::draw(sf::RenderWindow& window) const {
 }
 
 
-std::vector<sf::FloatRect> Tilemap::getSolidTiles() const {
-    std::vector<sf::FloatRect> solids;
-    for (int rows = 0; rows < tileCountY; rows++) {
-        for (int cols = 0; cols < tileCountX; cols++) {
-            TileType tile = tileGrid[rows][cols];
-            if(tile == TileType::Grass || tile == TileType::Ground || tile == TileType::ObstacleGround || tile == TileType::Trigger){
-               sf::FloatRect rect({(float)(cols*TileSize),(float)(rows*TileSize)},{(float)TileSize, (float)TileSize});
-               solids.push_back(rect); 
-            }
-        }
-    }
-    return solids;
-}
 
 bool Tilemap::loadTexture(const std::string& path , const std::string Block){
     if(Block == "Stone"){
@@ -180,4 +167,35 @@ std::vector<sf::Vector2f> Tilemap::getCoinSpawnPoints() const{
         }
     }
 return coinPos;
+}
+
+std::vector<sf::FloatRect> Tilemap::getSolidTiles() const {
+    std::vector<sf::FloatRect> solids;
+    for (int rows = 0; rows < tileCountY; rows++) {
+        for (int cols = 0; cols < tileCountX; cols++) {
+            TileType tile = tileGrid[rows][cols];
+            if(tile == TileType::Grass || tile == TileType::Ground || tile == TileType::ObstacleGround){
+               sf::FloatRect rect({(float)(cols*TileSize),(float)(rows*TileSize)},{(float)TileSize, (float)TileSize});
+               solids.push_back(rect); 
+            }
+        }
+    }
+    return solids;
+}
+
+std::vector<sf::FloatRect> Tilemap::getTrapHitboxes() const {
+    std::vector<sf::FloatRect> traps;
+    for (int rows = 0; rows < tileCountY; rows++) {
+        for (int cols = 0; cols < tileCountX; cols++) {
+            TileType tile = tileGrid[rows][cols];
+            if(tile == TileType::Trigger){
+                sf::FloatRect rect(
+                    {(float)(cols*TileSize) + 10.f, (float)(rows*TileSize) + 10.f},
+                    {(float)TileSize - 20.f, (float)TileSize - 20.f}
+                );
+                traps.push_back(rect);
+            }
+        }
+    }
+    return traps;
 }

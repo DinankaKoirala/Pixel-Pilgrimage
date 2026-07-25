@@ -28,9 +28,11 @@ add_executable(PixelPilgrimage
     src/level-1/src/enemy.cpp
     src/level-1/src/player.cpp
     src/level-1/src/tilemap.cpp
-    src/shared/DeathScreen.cpp
+    src/shared/death-screen/DeathScreen.cpp
+    src/shared/start-screen/StartScreen.cpp
+    src/shared/map/MapScreen.cpp
 )
-target_include_directories(PixelPilgrimage PRIVATE src/level-1/src/Header src src/shared src/shared/Header)
+target_include_directories(PixelPilgrimage PRIVATE src/level-1/src/Header src src/shared)
 target_link_libraries(PixelPilgrimage PRIVATE SFML::Graphics SFML::Audio)
 
 # Load assets directly from source, no copying needed
@@ -44,9 +46,10 @@ add_executable(PixelPilgrimage_level2
     src/level-2/src/Decorationmanager.cpp
     src/level-2/src/Starspawner.cpp
     src/level-2/src/Level.cpp
-    src/shared/DeathScreen.cpp
+    src/shared/death-screen/DeathScreen.cpp
+    src/shared/win/WinScreen.cpp
 )
-target_include_directories(PixelPilgrimage_level2 PRIVATE src/level-2/src src/shared src/shared/Header)
+target_include_directories(PixelPilgrimage_level2 PRIVATE src/level-2/src src/shared)
 target_link_libraries(PixelPilgrimage_level2 PRIVATE SFML::Graphics SFML::Audio)
 
 # Copy Level 2 assets next to its exe

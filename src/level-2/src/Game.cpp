@@ -13,6 +13,7 @@ Game::Game()//constructor initializes the game window, view, and other members
     , background(bgTex)
     , player(sf::Vector2f(150.f, 550.f))//player starts at 150,550
     , deathScreen(1280.f, 720.f, "../src/level-2/assets/Vipnagorgialla Bd.otf")
+    , winScreen(1280.f, 720.f, "../src/level-2/assets/Vipnagorgialla Bd.otf")
 {
     std::srand(static_cast<unsigned>(std::time(nullptr)));//without this always gives same pattern 
     window.setView(view);//with this trees different cloud different ...
@@ -91,30 +92,32 @@ bool Game::loadAssets()
 //GAME LOOP
 void Game::run()
 {
-    // `clock` started ticking the moment it was constructed - i.e. BEFORE
-    // loadAssets()/createLevel() ran in the Game constructor. Loading all
-    // the textures/sounds/font takes real time, so without this restart
-    // the very first dt below would silently include that entire loading
-    // time as "elapsed game time" - one giant physics step big enough to
-    // launch the player through the floor and trigger an instant death
-    // before the window is even visible. Restarting here throws that
-    // loading-time delta away so the game actually starts clean.
     clock.restart();
 
     while (window.isOpen())
     {
-        float dt = clock.restart().asSeconds();//dt is the time taken by one frame. It makes movement independent of FPS.
+        float dt = clock.restart().asSeconds();
 
-        // Safety net for later too: a lag spike (window drag, OS hiccup,
-        // breakpoint while debugging, etc.) can also produce an oversized
-        // dt and cause the same kind of tunneling mid-game. Cap it so
-        // physics never takes a bigger step than this, no matter what.
         const float maxDt = 1.f / 30.f;
         if (dt > maxDt) dt = maxDt;
 
-        processEvents();//handles keyboard
+        processEvents();
         update(dt);
         render();
+
+        if (gameWon)
+        {
+            WinScreenResult wr = winScreen.run(window);
+            if (wr == WinScreenResult::Exit)
+            {
+                window.close();
+            }
+            // BackToMenu: just close so level1's start screen shows
+            else if (wr == WinScreenResult::BackToMenu)
+            {
+                window.close();
+            }
+        }
     }
 }
 //ALL keyboard stuffs handled here 
@@ -415,12 +418,6 @@ void Game::render()
     }
 
     player.draw(window);
-
-    // TEMPORARY placeholder until you add a font/sf::Text "You Win" screen
-    if (gameWon)
-    {
-        window.clear(sf::Color(30, 100, 30)); // greenish flash so you can visually confirm the win state works
-    }
 
     // Scoreboard is HUD, not world - draw it with the window's default
     // (unscrolled) view so it stays pinned to the top-left corner instead

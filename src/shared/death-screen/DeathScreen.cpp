@@ -1,5 +1,4 @@
-#include"Header/deathscreen.h"
-#include<SFML/Graphics.hpp>
+#include "DeathScreen.h"
 #include <iostream>
 #include <string>
 

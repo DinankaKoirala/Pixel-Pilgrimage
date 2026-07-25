@@ -14,10 +14,11 @@ Game::Game()//constructor initializes the game window, view, and other members
     , background(bgTex)
     , player(sf::Vector2f(150.f, 550.f))//player starts at 150,550
     , deathScreen(1280.f, 720.f, "../src/level-2/assets/Vipnagorgialla Bd.otf")
-    , winScreen(1280.f, 720.f, "../src/level-2/assets/Vipnagorgialla Bd.otf")
 {
-    std::srand(static_cast<unsigned>(std::time(nullptr)));//without this always gives same pattern 
-    window.setView(view);//with this trees different cloud different ...
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+    window.setView(view);
+
+    completeFontLoaded = completeFont.openFromFile(assetsPath + "Cinzel-Regular.ttf");
 
     if (!loadAssets())
     {
@@ -108,12 +109,13 @@ void Game::run()
 
         if (gameWon)
         {
-            WinScreenResult wr = winScreen.run(window);
-            if (wr == WinScreenResult::Exit)
+            if (!levelCompleteShown)
             {
-                window.close();
+                levelCompleteShown = true;
+                levelCompleteClock.restart();
             }
-            else if (wr == WinScreenResult::BackToMenu)
+
+            if (levelCompleteClock.getElapsedTime().asSeconds() >= 1.5f)
             {
                 window.close();
                 runLevel3();
@@ -435,6 +437,31 @@ void Game::render()
     if (gameOver)
     {
         deathScreen.draw(window);
+    }
+
+    if (gameWon)
+    {
+        sf::RectangleShape overlay({1280.f, 720.f});
+        overlay.setFillColor(sf::Color(0, 0, 0, 200));
+        overlay.setPosition({0.f, 0.f});
+        window.draw(overlay);
+
+        if (completeFontLoaded)
+        {
+            sf::Text t(completeFont, "LEVEL COMPLETE!", 48);
+            sf::FloatRect b = t.getLocalBounds();
+            t.setOrigin({b.size.x / 2.f, b.size.y / 2.f});
+            t.setPosition({640.f, 330.f});
+            t.setFillColor(sf::Color(100, 255, 100));
+            window.draw(t);
+
+            sf::Text s(completeFont, "Loading next level...", 22);
+            sf::FloatRect sb = s.getLocalBounds();
+            s.setOrigin({sb.size.x / 2.f, sb.size.y / 2.f});
+            s.setPosition({640.f, 410.f});
+            s.setFillColor(sf::Color(200, 200, 200));
+            window.draw(s);
+        }
     }
 
     window.setView(view);

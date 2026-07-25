@@ -13,7 +13,6 @@
 #include "DecorationManager.h"
 #include "Coin.h"
 #include "death-screen/DeathScreen.h"
-#include "win/WinScreen.h"
 #include <SFML/Audio.hpp>
 
 // Owns and runs the entire game: the window, the game loop, and every
@@ -50,7 +49,6 @@ private:
 
     Player player;
     DeathScreen deathScreen;
-    WinScreen winScreen;
 
     //sound
     sf::SoundBuffer coinBuffer;
@@ -89,4 +87,10 @@ private:
     // start scrolling immediately instead of sitting frozen for a few seconds.
     // Must match the filler reach built in Level.cpp's createLevel().
     static constexpr float levelStart = -540.f;
+
+    // level complete overlay
+    sf::Clock levelCompleteClock;
+    bool levelCompleteShown = false;
+    sf::Font completeFont;
+    bool completeFontLoaded = false;
 };

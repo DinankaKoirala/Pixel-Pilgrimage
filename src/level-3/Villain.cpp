@@ -15,7 +15,7 @@ Villain::Villain(sf::Vector2f slopeStart, sf::Vector2f slopeEnd)
       m_arrowSpeed(430.f)
 {
     m_texture = Utility::loadTextureOrPlaceholder("../src/level-3/assets/villain.png", sf::Color(160, 30, 30));
-    (void)m_sprite.setTexture(m_texture);
+    (void)m_sprite.setTexture(m_texture, true);
 
     sf::Vector2u size = m_texture.getSize();
     m_sprite.setOrigin({size.x / 2.f, size.y / 2.f});

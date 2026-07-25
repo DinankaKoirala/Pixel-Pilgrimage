@@ -3,7 +3,6 @@
 #include <vector>
 #include "level4.h"
 #include "death-screen/DeathScreen.h"
-#include "win/WinScreen.h"
 
 class Game4 {
 public:
@@ -33,7 +32,6 @@ private:
     GameOverScreen gameOverScreen;
 
     DeathScreen deathScreen;
-    WinScreen winScreen;
 
     float gameSpeed;
     float score;
@@ -42,7 +40,6 @@ private:
     bool gameOver;
     bool gameWon;
     bool deathHandled;
-    bool winHandled;
 
     float spawnTimer;
     float treeTimer;

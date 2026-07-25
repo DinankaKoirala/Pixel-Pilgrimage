@@ -46,7 +46,7 @@ public:
         : Projectile(position, velocity)
     {
         m_texture = Utility::loadTextureOrPlaceholder("../src/level-3/assets/stone.png", sf::Color(110, 110, 110));
-        (void)m_sprite.setTexture(m_texture);
+        (void)m_sprite.setTexture(m_texture, true);
 
         sf::Vector2u size = m_texture.getSize();
         m_sprite.setOrigin({size.x / 2.f, size.y / 2.f});
@@ -79,11 +79,9 @@ public:
         : Projectile(position, velocity)
     {
         m_texture = Utility::loadTextureOrPlaceholder("../src/level-3/assets/arrow.png", sf::Color(80, 50, 20));
-        (void)m_sprite.setTexture(m_texture);
+        (void)m_sprite.setTexture(m_texture, true);
 
         sf::Vector2u size = m_texture.getSize();
-        // Origin on the left-center, so rotation pivots around the nock
-        // end and the arrow visually points along its direction of travel.
         m_sprite.setOrigin({0.f, size.y / 2.f});
 
         float targetLength = 45.f;

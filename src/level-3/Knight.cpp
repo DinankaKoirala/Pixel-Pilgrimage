@@ -24,7 +24,7 @@ Knight::Knight(sf::Vector2f slopeStart, sf::Vector2f slopeEnd)
     }
 
     m_texture = Utility::loadTextureOrPlaceholder("../src/level-3/assets/knight.png", sf::Color(120, 170, 220));
-    (void)m_sprite.setTexture(m_texture);
+    (void)m_sprite.setTexture(m_texture, true);
 
     sf::Vector2u size = m_texture.getSize();
     m_sprite.setOrigin({size.x / 2.f, size.y / 2.f});

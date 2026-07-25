@@ -5,7 +5,7 @@ Princess::Princess()
     : m_offset(-45.f, -10.f) // drawn slightly behind/above whoever she's anchored to
 {
     m_texture = Utility::loadTextureOrPlaceholder("../src/level-3/assets/princess.png", sf::Color(230, 120, 170));
-    (void)m_sprite.setTexture(m_texture);
+    (void)m_sprite.setTexture(m_texture, true);
 
     sf::Vector2u size = m_texture.getSize();
     m_sprite.setOrigin({size.x / 2.f, size.y / 2.f});

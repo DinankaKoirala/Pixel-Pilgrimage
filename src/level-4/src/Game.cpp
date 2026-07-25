@@ -7,7 +7,6 @@
 Game4::Game4()
     : window(sf::VideoMode({(unsigned)SW, (unsigned)SH}), "Winter Journey")
     , deathScreen(SW, SH, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
-    , winScreen(SW, SH, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
     , gameSpeed(BASE_SPEED)
     , score(0)
     , coinCount(0)
@@ -15,7 +14,6 @@ Game4::Game4()
     , gameOver(false)
     , gameWon(false)
     , deathHandled(false)
-    , winHandled(false)
     , spawnTimer(0)
     , treeTimer(0)
     , deerTimer(0)
@@ -39,11 +37,8 @@ void Game4::run() {
         update(dt);
         render();
 
-        if (gameWon && !winHandled) {
-            WinScreenResult result = winScreen.run(window);
-            if (result == WinScreenResult::Exit || result == WinScreenResult::BackToMenu) {
-                winHandled = true;
-            }
+        if (gameWon) {
+            window.close();
         }
     }
 }
@@ -142,7 +137,6 @@ void Game4::update(float dt) {
 
     if (score >= WIN_SCORE && !gameWon) {
         gameWon = true;
-        winHandled = false;
     }
 }
 

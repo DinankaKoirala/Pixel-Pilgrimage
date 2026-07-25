@@ -13,7 +13,6 @@ Game::Game()
     , m_state(GameState::Intro)
     , m_introSpeed(0.35f)
     , m_deathScreen((float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
-    , m_winScreen((float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
 {
     m_window.setFramerateLimit(60);
 
@@ -55,15 +54,14 @@ void Game::run() {
         update(dt);
         render();
 
-        if (m_state == GameState::Won && !m_winHandled) {
-            WinScreenResult wr = m_winScreen.run(m_window);
-            if (wr == WinScreenResult::BackToMenu) {
-                m_winHandled = true;
-                m_window.close();
-                runLevel4();
-            } else if (wr == WinScreenResult::Exit) {
-                m_window.close();
-            }
+        if (m_state == GameState::Won && !m_levelCompleteShown) {
+            m_levelCompleteShown = true;
+            m_levelCompleteClock.restart();
+        }
+        if (m_state == GameState::Won && m_levelCompleteShown &&
+            m_levelCompleteClock.getElapsedTime().asSeconds() >= 1.5f) {
+            m_window.close();
+            runLevel4();
         }
     }
 }
@@ -148,7 +146,6 @@ void Game::update(float dt) {
         m_deathHandled = false;
     } else if (m_knight.getProgress() >= 1.f) {
         m_state = GameState::Won;
-        m_winHandled = false;
     }
 }
 
@@ -214,6 +211,28 @@ void Game::render() {
         m_deathScreen.draw(m_window);
     }
 
+    if (m_state == GameState::Won) {
+        sf::RectangleShape overlay({(float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT});
+        overlay.setFillColor(sf::Color(0, 0, 0, 200));
+        m_window.draw(overlay);
+
+        if (m_fontLoaded) {
+            sf::Text t(m_font, "LEVEL COMPLETE!", 48);
+            sf::FloatRect b = t.getLocalBounds();
+            t.setOrigin({b.size.x / 2.f, b.size.y / 2.f});
+            t.setPosition({Constants::WINDOW_WIDTH / 2.f, Constants::WINDOW_HEIGHT / 2.f - 40.f});
+            t.setFillColor(sf::Color(100, 255, 100));
+            m_window.draw(t);
+
+            sf::Text s(m_font, "Loading next level...", 22);
+            sf::FloatRect sb = s.getLocalBounds();
+            s.setOrigin({sb.size.x / 2.f, sb.size.y / 2.f});
+            s.setPosition({Constants::WINDOW_WIDTH / 2.f, Constants::WINDOW_HEIGHT / 2.f + 40.f});
+            s.setFillColor(sf::Color(200, 200, 200));
+            m_window.draw(s);
+        }
+    }
+
     m_window.display();
 }
 
@@ -224,5 +243,5 @@ void Game::restart() {
     m_projectiles.clear();
     m_state = GameState::Intro;
     m_deathHandled = false;
-    m_winHandled = false;
+    m_levelCompleteShown = false;
 }

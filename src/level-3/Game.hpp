@@ -8,7 +8,6 @@
 #include "Princess.hpp"
 #include "Projectile.hpp"
 #include "death-screen/DeathScreen.h"
-#include "win/WinScreen.h"
 
 enum class GameState {
     Intro,
@@ -47,7 +46,8 @@ private:
     float m_introSpeed;
 
     DeathScreen m_deathScreen;
-    WinScreen m_winScreen;
     bool m_deathHandled = false;
-    bool m_winHandled = false;
+
+    sf::Clock m_levelCompleteClock;
+    bool m_levelCompleteShown = false;
 };

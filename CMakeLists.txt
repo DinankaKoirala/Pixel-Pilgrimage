@@ -24,6 +24,7 @@ add_executable(PixelPilgrimage
     src/runLevel2.cpp
     src/runLevel3.cpp
     src/runLevel4.cpp
+    src/runLevel5.cpp
     src/level-1/src/audioManager.cpp
     src/level-1/src/background.cpp
     src/level-1/src/coin.cpp
@@ -116,4 +117,32 @@ add_custom_command(TARGET PixelPilgrimage POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     "$<TARGET_FILE:PixelPilgrimage_level4>"
     "$<TARGET_FILE_DIR:PixelPilgrimage>/PixelPilgrimage_level4.exe"
+)
+
+# ── Level 5 ──────────────────────────────────────────────────────────────────
+add_executable(PixelPilgrimage_level5
+    src/level-5/src/main.cpp
+)
+target_include_directories(PixelPilgrimage_level5 PRIVATE src/level-5/src src/level-5/src/Header src src/shared)
+target_link_libraries(PixelPilgrimage_level5 PRIVATE SFML::Graphics SFML::Window SFML::System SFML::Audio)
+
+add_custom_command(TARGET PixelPilgrimage_level5 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${PROJECT_SOURCE_DIR}/src/level-5/assets"
+    "$<TARGET_FILE_DIR:PixelPilgrimage_level5>/level-5/assets"
+)
+
+if (WIN32)
+    add_custom_command(TARGET PixelPilgrimage_level5 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:PixelPilgrimage_level5>
+            $<TARGET_FILE_DIR:PixelPilgrimage_level5>
+        COMMAND_EXPAND_LISTS
+    )
+endif()
+
+add_custom_command(TARGET PixelPilgrimage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    "$<TARGET_FILE:PixelPilgrimage_level5>"
+    "$<TARGET_FILE_DIR:PixelPilgrimage>/PixelPilgrimage_level5.exe"
 )

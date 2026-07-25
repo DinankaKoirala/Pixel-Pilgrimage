@@ -5,7 +5,7 @@ void runLevel4()
 {
     std::cout << "Loading level 4..." << std::endl;
 #ifdef _WIN32
-    int result = std::system("Debug\\PixelPilgrimage_level4.exe");
+    int result = std::system("PixelPilgrimage_level4.exe");
 #else
     int result = std::system("./PixelPilgrimage_level4");
 #endif

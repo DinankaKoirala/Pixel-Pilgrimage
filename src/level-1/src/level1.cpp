@@ -11,6 +11,7 @@
 #include "runLevel2.h"
 #include "runLevel3.h"
 #include "runLevel4.h"
+#include "runLevel5.h"
 #include "audioManager.h"
 #include "death-screen/DeathScreen.h"
 #include "start-screen/StartScreen.h"
@@ -337,6 +338,10 @@ int main()
             else if (mr == MapScreenResult::Level4)
             {
                 runLevel4();
+            }
+            else if (mr == MapScreenResult::Level5)
+            {
+                runLevel5();
             }
 
             window.create(sf::VideoMode({ 1280u, 720u }), "Pixel Pilgrimage");

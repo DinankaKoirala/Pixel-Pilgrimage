@@ -39,6 +39,7 @@ void Game4::run() {
 
         if (gameWon) {
             window.close();
+            std::system("PixelPilgrimage_level5.exe");
         }
     }
 }

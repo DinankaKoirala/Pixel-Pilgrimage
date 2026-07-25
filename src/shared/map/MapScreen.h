@@ -10,6 +10,7 @@ enum class MapScreenResult {
     Level2,
     Level3,
     Level4,
+    Level5,
     BackToMenu,
     Exit
 };
@@ -35,6 +36,7 @@ private:
     sf::FloatRect level2Area;
     sf::FloatRect level3Area;
     sf::FloatRect level4Area;
+    sf::FloatRect level5Area;
 
     sf::CircleShape gearIcon;
     bool showingSettings = false;

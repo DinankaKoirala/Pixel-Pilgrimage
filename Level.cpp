@@ -18,7 +18,7 @@ void createLevel(
     const float groundY = 600.f;//platform height 
     const float blockSpacing = 64.f;//distance between platforms
     const int coinInterval = 5; // one coin above every 5th regular (non-cracked) platform
-    const float coinHeight = 90.f; // how far above the platform the coin floats - tall enough it needs a real jump
+    const float coinHeight = 25.f; // how far above the platform the coin floats - tall enough it needs a real jump
 
     //Creates extra blocks left of the starting point.
     //without these blocks camera starts shows empty background 

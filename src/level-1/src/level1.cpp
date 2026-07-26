@@ -303,11 +303,9 @@ int main()
         {
             bool levelComplete = runLevel1(window);
 
-            window.close();
-
             if (levelComplete)
             {
-                runLevel2();
+                runLevel2(window);
             }
 
             window.create(sf::VideoMode({ 1280u, 720u }), "Pixel Pilgrimage");
@@ -318,25 +316,21 @@ int main()
             MapScreenResult mr = mapScreen.run(window);
             if (mr == MapScreenResult::Exit) break;
 
-            window.close();
-
             if (mr == MapScreenResult::Level1)
             {
-                window.create(sf::VideoMode({ 1280u, 720u }), "Pixel Pilgrimage");
-                window.setFramerateLimit(60);
                 runLevel1(window);
             }
             else if (mr == MapScreenResult::Level2)
             {
-                runLevel2();
+                runLevel2(window);
             }
             else if (mr == MapScreenResult::Level3)
             {
-                runLevel3();
+                runLevel3(window);
             }
             else if (mr == MapScreenResult::Level4)
             {
-                runLevel4();
+                runLevel4(window);
             }
 
             window.create(sf::VideoMode({ 1280u, 720u }), "Pixel Pilgrimage");

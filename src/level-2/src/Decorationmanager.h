@@ -7,6 +7,8 @@
 #include "Decoration.h"
 #include "AnimatedDecoration.h"
 
+namespace L2 {
+
 // Owns every decoration in the scene (hills, trees, clouds, sun, birds).
 // Game just calls init() once, then update()/draw() every frame.
 class DecorationManager
@@ -37,9 +39,11 @@ private:
 
     std::vector<std::unique_ptr<Decoration>> hills;
     std::vector<std::unique_ptr<Decoration>> trunks;  // one per tree, matched to that tree's variant/width
-    std::vector<std::unique_ptr<Decoration>> grass;   // one continuous tiled strip along the whole level, bottom-anchored flush with the platform top so trunks/platforms look planted in it, not floating
+    std::vector<std::unique_ptr<Decoration>> grass;   // one continuous tiled strip along the whole level
     std::vector<std::unique_ptr<Decoration>> trees;   // SwayingTree instances
     std::vector<std::unique_ptr<Decoration>> clouds;  // DriftingCloud instances
     std::vector<std::unique_ptr<Decoration>> sky;     // sun (and later: moon, glow...) - static
     std::vector<std::unique_ptr<Decoration>> birds;   // FlappingBird instances
 };
+
+} // namespace L2

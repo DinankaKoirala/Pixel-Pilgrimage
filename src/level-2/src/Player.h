@@ -5,6 +5,8 @@
 #include <cmath>
 #include <algorithm>
 
+namespace L2 {
+
 // Which pose the player is currently showing.
 enum class PlayerState
 {
@@ -315,3 +317,5 @@ private:
     const float maxMoveSpeed = 260.f;    // hard cap so it doesn't get out of hand
     const float speedSmoothing = 1.5f;   // higher = faster ramp-up per coin
 };
+
+} // namespace L2

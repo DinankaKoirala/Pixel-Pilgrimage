@@ -4,10 +4,12 @@
 #include "level4.h"
 #include "death-screen/DeathScreen.h"
 
+namespace L4 {
+
 class Game4 {
 public:
-    Game4();
-    void run();
+    Game4(sf::RenderWindow& win);
+    bool run();
 
 private:
     void processEvents();
@@ -16,7 +18,7 @@ private:
     void spawnObjects(float dt);
     void checkCollisions();
 
-    sf::RenderWindow window;
+    sf::RenderWindow& window;
     sf::Clock clock;
 
     Sky sky;
@@ -49,3 +51,5 @@ private:
 
     static constexpr float WIN_SCORE = 1000.f;
 };
+
+} // namespace L4

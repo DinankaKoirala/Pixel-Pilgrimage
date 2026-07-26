@@ -2,10 +2,12 @@
 #pragma once
 #include "GameObject.h"
 
+namespace L2 {
+
 class NinjaStar : public GameObject//inheritance
 {
 public:
-    NinjaStar(const sf::Texture& texture, sf::Vector2f position, float rotationSpeedDeg = 250.f)//constructor with default rotation spee
+    NinjaStar(const sf::Texture& texture, sf::Vector2f position, float rotationSpeedDeg = 250.f)//constructor with default rotation speed
         : GameObject(texture, position)
         , rotationSpeed(sf::degrees(rotationSpeedDeg))
     {
@@ -42,8 +44,11 @@ private:
     sf::Angle rotationSpeed;
     const float hitboxHalfSize = 14.f; // pixels from center - smaller than the sprite's rotated AABB, tune to taste
 };
+
 inline sf::Vector2f ninjaStarStandingPosition(float x, float groundY, float starHeight)
 {
     // Center the star so its bottom edge lines up with the bridge surface
     return sf::Vector2f(x, groundY - starHeight / 2.f);
 }
+
+} // namespace L2

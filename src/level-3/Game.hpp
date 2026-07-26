@@ -18,8 +18,8 @@ enum class GameState {
 
 class Game {
 public:
-    Game();
-    void run();
+    Game(sf::RenderWindow& window);
+    bool run();
 
 private:
     void processEvents();
@@ -28,7 +28,7 @@ private:
     void checkCollisions();
     void restart();
 
-    sf::RenderWindow m_window;
+    sf::RenderWindow& m_window;
     sf::Texture m_backgroundTexture;
     std::optional<sf::Sprite> m_backgroundSprite;
 

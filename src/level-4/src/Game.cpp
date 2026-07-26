@@ -4,8 +4,10 @@
 #include <cstdlib>
 #include <ctime>
 
-Game4::Game4()
-    : window(sf::VideoMode({(unsigned)SW, (unsigned)SH}), "Winter Journey")
+namespace L4 {
+
+Game4::Game4(sf::RenderWindow& win)
+    : window(win)
     , deathScreen(SW, SH, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
     , gameSpeed(BASE_SPEED)
     , score(0)
@@ -20,6 +22,7 @@ Game4::Game4()
     , giantTimer(0)
     , distTimer(0)
 {
+    window.create(sf::VideoMode({(unsigned)SW, (unsigned)SH}), "Winter Journey");
     window.setFramerateLimit(60);
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
@@ -28,7 +31,7 @@ Game4::Game4()
     trees.emplace_back(SW * 0.9f, 1.0f);
 }
 
-void Game4::run() {
+bool Game4::run() {
     while (window.isOpen()) {
         float dt = clock.restart().asSeconds();
         if (dt > 1.f / 30.f) dt = 1.f / 30.f;
@@ -38,9 +41,13 @@ void Game4::run() {
         render();
 
         if (gameWon) {
-            window.close();
+            return true;
+        }
+        if (!window.isOpen()) {
+            return false;
         }
     }
+    return false;
 }
 
 void Game4::processEvents() {
@@ -107,7 +114,7 @@ void Game4::update(float dt) {
     if (gameSpeed > 350.f) gameSpeed = 350.f;
 
     distTimer += dt;
-    score += (int)(gameSpeed * dt * 0.1f);
+    score += gameSpeed * dt * 0.1f;
 
     sky.update(dt);
     snowfall.update(dt);
@@ -153,7 +160,7 @@ void Game4::spawnObjects(float dt) {
     if (spawnTimer > coinInterval) {
         spawnTimer = 0;
         float cx = SW + 30.f;
-        float cy = groundYat(cx) - 40.f - (std::rand() % 60);
+        float cy = groundYat(cx) - 30.f - (std::rand() % 60);
         coins.emplace_back(cx, cy);
     }
 
@@ -261,3 +268,5 @@ void Game4::render() {
 
     window.display();
 }
+
+} // namespace L4

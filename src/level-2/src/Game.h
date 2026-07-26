@@ -15,14 +15,13 @@
 #include "death-screen/DeathScreen.h"
 #include <SFML/Audio.hpp>
 
-// Owns and runs the entire game: the window, the game loop, and every
-// system (platforms, player, ninja stars, decorations, collisions).
-// main.cpp only ever needs to construct one Game and call run().
+namespace L2 {
+
 class Game
 {
 public:
-    Game();
-    void run();
+    Game(sf::RenderWindow& win);
+    bool run();
 
 private:
     bool loadAssets();
@@ -31,12 +30,12 @@ private:
     void update(float dt);
     void checkCrackTriggers();
     void checkCollisions(float prevPlayerBottom);
-    void checkCoinCollisions();     // player touches a coin -> score + gradual speed boost
+    void checkCoinCollisions();
     void render();
 
-    sf::RenderWindow window;//creates window 
-    sf::View view;//acts like the camera
-    std::string assetsPath;//assets path 
+    sf::RenderWindow& window;
+    sf::View view;
+    std::string assetsPath;
 
     sf::Texture bgTex, blockTex, crackedTex, starTex, coinTex;
     sf::Sprite background;
@@ -63,29 +62,23 @@ private:
     sf::SoundBuffer deathBuffer;
     std::optional<sf::Sound> deathSound;
     sf::Clock clock;
-    bool gameOver = false;//tracks wether game ended or not 
-    bool gameWon = false;                       // true once player clears enough cracked platforms
-    int crackedPlatformsPassed = 0;             // counts triggered cracked platforms
-    static constexpr int crackedPlatformsToWin = 10; // win threshold
-    float cameraX = 0.f;//stores camera center 
+    bool gameOver = false;
+    bool gameWon = false;
+    int crackedPlatformsPassed = 0;
+    static constexpr int crackedPlatformsToWin = 10;
+    float cameraX = 0.f;
 
     // --- scoring / coins ---
     int score = 0;
     static constexpr int scorePerCoin = 10;
-    static constexpr float speedBoostPerCoin = 8.f; // how much the speed ceiling rises per coin (Player smooths the actual ramp)
+    static constexpr float speedBoostPerCoin = 8.f;
 
-    // scoreFont must be declared before scoreText - sf::Text holds a
-    // reference to it, and members init in declaration order.
     sf::Font scoreFont;
     sf::Text scoreText{ scoreFont };
     sf::RectangleShape scorePanel;
     std::optional<sf::Sprite> scoreCoin;
 
     static constexpr float levelEnd = 100.f + 500.f * 64.f;
-    // Extended left of the real gameplay start (100.f) with filler ground so the
-    // camera's initial view is already fully covered - this lets the camera
-    // start scrolling immediately instead of sitting frozen for a few seconds.
-    // Must match the filler reach built in Level.cpp's createLevel().
     static constexpr float levelStart = -540.f;
 
     // level complete overlay
@@ -94,3 +87,5 @@ private:
     sf::Font completeFont;
     bool completeFontLoaded = false;
 };
+
+} // namespace L2

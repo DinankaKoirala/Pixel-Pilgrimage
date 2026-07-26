@@ -2,6 +2,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
+namespace L2 {
+
 class GameObject {
 public:
     GameObject(const sf::Texture& texture, sf::Vector2f position)
@@ -25,3 +27,5 @@ public:
 protected:
     sf::Sprite sprite;
 };
+
+} // namespace L2

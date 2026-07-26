@@ -7,23 +7,25 @@
 #include <ctime>
 #include <SFML/Audio.hpp>
 
-Game::Game()//constructor initializes the game window, view, and other members
-    : window(sf::VideoMode({ 1280u, 720u }), " Bridge Level")//window creation 
-    , view(sf::FloatRect({ 0.f, 0.f }, { 1280.f, 720.f }))//creates a camera the camera follows the player 
+namespace L2 {
+
+Game::Game(sf::RenderWindow& win)
+    : window(win)
+    , view(sf::FloatRect({ 0.f, 0.f }, { 1280.f, 720.f }))
     , assetsPath("../src/level-2/assets/")
     , background(bgTex)
-    , player(sf::Vector2f(150.f, 550.f))//player starts at 150,550
+    , player(sf::Vector2f(150.f, 550.f))
     , deathScreen(1280.f, 720.f, "../src/level-2/assets/Vipnagorgialla Bd.otf")
 {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
+    window.create(sf::VideoMode({ 1280u, 720u }), "Bridge Level");
+    window.setFramerateLimit(60);
     window.setView(view);
 
     completeFontLoaded = completeFont.openFromFile(assetsPath + "Cinzel-Regular.ttf");
 
     if (!loadAssets())
     {
-        // A texture failed to load - close the window so run() exits
-        // immediately instead of showing a broken/blank game.
         window.close();
         return;
     }
@@ -92,7 +94,7 @@ bool Game::loadAssets()
     return true;//everything loaded successfully
 }
 //GAME LOOP
-void Game::run()
+bool Game::run()
 {
     clock.restart();
 
@@ -117,11 +119,16 @@ void Game::run()
 
             if (levelCompleteClock.getElapsedTime().asSeconds() >= 1.5f)
             {
-                window.close();
-                runLevel3();
+                return runLevel3(window);
             }
         }
+
+        if (!window.isOpen())
+        {
+            return false;
+        }
     }
+    return false;
 }
 //ALL keyboard stuffs handled here 
 void Game::processEvents()
@@ -468,3 +475,5 @@ void Game::render()
 
     window.display();
 }
+
+} // namespace L2

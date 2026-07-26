@@ -52,6 +52,7 @@ MapScreen::MapScreen(float width, float height, const std::string& assetsPath)
     level2Area = sf::FloatRect({ 500.f, 300.f }, { 300.f, 200.f });
     level3Area = sf::FloatRect({ 850.f, 150.f }, { 300.f, 200.f });
     level4Area = sf::FloatRect({ 900.f, 400.f }, { 300.f, 200.f });
+    level5Area = sf::FloatRect({ 100.f, 480.f }, { 300.f, 200.f });
 
     gearIcon.setRadius(22.f);
     gearIcon.setPosition({ width - 60.f, 25.f });
@@ -105,6 +106,7 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
                         if (level2Area.contains(mp)) return MapScreenResult::Level2;
                         if (level3Area.contains(mp)) return MapScreenResult::Level3;
                         if (level4Area.contains(mp)) return MapScreenResult::Level4;
+                        if (level5Area.contains(mp)) return MapScreenResult::Level5;
 
                 sf::FloatRect gearBounds = gearIcon.getGlobalBounds();
                 if (gearBounds.contains(mp)) { showingSettings = true; continue; }
@@ -128,6 +130,7 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
             drawLevelMarker(window, level2Area, "LEVEL 2", mouse);
             drawLevelMarker(window, level3Area, "LEVEL 3", mouse);
             drawLevelMarker(window, level4Area, "LEVEL 4", mouse);
+            drawLevelMarker(window, level5Area, "LEVEL 5", mouse);
             window.draw(gearIcon);
         }
 

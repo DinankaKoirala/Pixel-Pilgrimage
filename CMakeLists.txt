@@ -55,14 +55,18 @@ add_executable(PixelPilgrimage
     # Level 4
     src/level-4/src/level4.cpp
     src/level-4/src/Game.cpp
+    # Level 5
+    src/level-5/src/Game.cpp
     # Runners
     src/runLevel2.cpp
     src/runLevel3.cpp
     src/runLevel4.cpp
+    src/runLevel5.cpp
     # Shared
     src/shared/death-screen/DeathScreen.cpp
     src/shared/start-screen/StartScreen.cpp
     src/shared/map/MapScreen.cpp
+    src/shared/win/WinScreen.cpp
 )
 target_include_directories(PixelPilgrimage PRIVATE
     src
@@ -72,6 +76,8 @@ target_include_directories(PixelPilgrimage PRIVATE
     src/level-3
     src/level-4/src
     src/level-4/src/Header
+    src/level-5/src
+    src/level-5/src/Header
 )
 target_link_libraries(PixelPilgrimage PRIVATE SFML::Graphics SFML::Audio)
 set_target_properties(PixelPilgrimage PROPERTIES

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include "runLevel5.h"
 
 namespace L4 {
 
@@ -41,7 +42,7 @@ bool Game4::run() {
         render();
 
         if (gameWon) {
-            return true;
+            return runLevel5(window);
         }
         if (!window.isOpen()) {
             return false;

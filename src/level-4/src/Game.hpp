@@ -49,7 +49,7 @@ private:
     float giantTimer;
     float distTimer;
 
-    static constexpr float WIN_SCORE = 1000.f;
+    static constexpr float WIN_SCORE = 500.f;
 };
 
 } // namespace L4

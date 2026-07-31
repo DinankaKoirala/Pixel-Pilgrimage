@@ -25,8 +25,9 @@ static bool runLevel1(sf::RenderWindow& window)
     bool levelComplete = false;
 
     AudioManager audio;
-    audio.loadSFX("jump", "../src/level-1/assets/sounds/jump.mp3");
-    audio.loadSFX("hurt", "../src/level-1/assets/sounds/hurt.mp3");
+    audio.loadSFX("jump", "../src/level-1/assets/sounds/jump.wav");
+    audio.loadSFX("hurt", "../src/level-1/assets/sounds/hurt.wav");
+    audio.loadSFX("coin", "../src/level-1/assets/sounds/coincollect.wav");
     audio.loadSFX("footstep", "../src/level-1/assets/sounds/footstep.mp3");
 
     Tilemap tilemap;
@@ -41,6 +42,9 @@ static bool runLevel1(sf::RenderWindow& window)
     }
     if (!tilemap.loadTexture("../src/level-1/assets/textures/platform_tile.jpg", "Obstacle")) {
         std::cout << "Failed to load obstacle texture!" << std::endl;
+    }
+    if (!tilemap.loadTexture("../src/level-1/assets/textures/bear_trap.png", "Trap")) {
+        std::cout << "Failed to load trap texture!" << std::endl;
     }
 
     std::vector<sf::FloatRect> solids = tilemap.getSolidTiles();
@@ -92,11 +96,13 @@ static bool runLevel1(sf::RenderWindow& window)
     Background background;
     background.loadTexture("../src/level-1/assets/textures/background.png");
 
+    const int requiredCoins = 7;
+
     sf::Font scoreFont;
     if (!scoreFont.openFromFile("../src/level-1/assets/fonts/Helvetica.ttf")) {
         std::cerr << "Failed to load score font!" << std::endl;
     }
-    sf::Text scoreText(scoreFont, "SCORE: 0", 28);
+    sf::Text scoreText(scoreFont, "COINS: 0/7", 28);
     scoreText.setFillColor(sf::Color(255, 215, 0));
     scoreText.setOutlineColor(sf::Color::Black);
     scoreText.setOutlineThickness(2.f);
@@ -130,6 +136,20 @@ static bool runLevel1(sf::RenderWindow& window)
     sf::Clock levelCompleteClock;
     bool transitionReady = false;
 
+    auto resetLevel = [&]() {
+        player.reset(playerSpawn.x, playerSpawn.y);
+        for (size_t i = 0; i < enemies.size(); i++) {
+            enemies[i].reset(enemySpawns[i].x, enemySpawns[i].y);
+        }
+        for (size_t i = 0; i < coins.size(); i++) {
+            coins[i].reset(coinSpawns[i].x, coinSpawns[i].y);
+        }
+        Coin::coinsCollected = 0;
+        playerAlive = true;
+        levelComplete = false;
+        transitionReady = false;
+    };
+
     while (window.isOpen() && !transitionReady)
     {
         while (const std::optional event = window.pollEvent())
@@ -138,19 +158,11 @@ static bool runLevel1(sf::RenderWindow& window)
                 window.close();
             else if (const auto* mouseclick = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (!playerAlive && mouseclick->button == sf::Mouse::Button::Left) {
-                    DeathScreenResult result = deathScreen.getInput(sf::Vector2f(mouseclick->position));
+                    DeathScreenResult result = deathScreen.getInput(window, mouseclick->position);
                     if (result == DeathScreenResult::Exit) {
                         window.close();
-                    } else if (result == DeathScreenResult::Restart) {
-                        player.reset(playerSpawn.x, playerSpawn.y);
-                        for (size_t i = 0; i < enemies.size(); i++) {
-                            enemies[i].reset(enemySpawns[i].x, enemySpawns[i].y);
-                        }
-                        for (size_t i = 0; i < coins.size(); i++) {
-                            coins[i].reset(coinSpawns[i].x, coinSpawns[i].y);
-                        }
-                        Coin::coinsCollected = 0;
-                        playerAlive = true;
+                    } else                     if (result == DeathScreenResult::Restart) {
+                        resetLevel();
                     }
                 }
             }
@@ -188,13 +200,13 @@ static bool runLevel1(sf::RenderWindow& window)
                 if (!coin.isCollected()) {
                     if (auto overlap = player.getPlayerHitbox().findIntersection(coin.getCoinHitbox())) {
                         coin.collect();
-                        audio.playSFX("hurt");
+                        audio.playSFX("coin");
                     }
                 }
             }
 
-            int score = (int)player.getPosition().x + Coin::coinsCollected * 100;
-            scoreText.setString("SCORE: " + std::to_string(score));
+            int score = Coin::coinsCollected;
+            scoreText.setString("COINS: " + std::to_string(score) + "/" + std::to_string(requiredCoins));
 
             sf::FloatRect playerBox = player.getPlayerHitbox();
             float playerRight = playerBox.position.x + playerBox.size.x;
@@ -204,21 +216,15 @@ static bool runLevel1(sf::RenderWindow& window)
             }
         }
 
-        if (!levelComplete &&
-            sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LControl) &&
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LControl) &&
             sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::R)) {
-            player.reset(playerSpawn.x, playerSpawn.y);
-            for (size_t i = 0; i < enemies.size(); i++) {
-                enemies[i].reset(enemySpawns[i].x, enemySpawns[i].y);
-            }
-            playerAlive = true;
-            for (size_t i = 0; i < coins.size(); i++) {
-                coins[i].reset(coinSpawns[i].x, coinSpawns[i].y);
+            if (!levelComplete || Coin::coinsCollected < requiredCoins) {
+                resetLevel();
             }
         }
 
-        if (player.getPosition().x <= window.getSize().x / 2.f) {
-            camera.setCenter({1280 / 2.f, 360.f});
+        if (player.getPosition().x <= 640.f) {
+            camera.setCenter({640.f, 360.f});
         } else {
             camera.setCenter({player.getPosition().x, 360.f});
         }
@@ -258,22 +264,53 @@ static bool runLevel1(sf::RenderWindow& window)
             window.draw(overlay);
 
             if (fontLoaded) {
-                sf::Text t(completeFont, "LEVEL COMPLETE!", 48);
-                sf::FloatRect b = t.getLocalBounds();
-                t.setOrigin({b.size.x / 2.f, b.size.y / 2.f});
-                t.setPosition({camera.getCenter().x, 330.f});
-                t.setFillColor(sf::Color(100, 255, 100));
-                window.draw(t);
+                if (Coin::coinsCollected < requiredCoins) {
+                    sf::Text t(completeFont, "NOT ENOUGH COINS!", 48);
+                    sf::FloatRect b = t.getLocalBounds();
+                    t.setOrigin({b.size.x / 2.f, b.size.y / 2.f});
+                    t.setPosition({camera.getCenter().x, 290.f});
+                    t.setFillColor(sf::Color(255, 100, 100));
+                    window.draw(t);
 
-                sf::Text s(completeFont, "Loading next level...", 22);
-                sf::FloatRect sb = s.getLocalBounds();
-                s.setOrigin({sb.size.x / 2.f, sb.size.y / 2.f});
-                s.setPosition({camera.getCenter().x, 410.f});
-                s.setFillColor(sf::Color(200, 200, 200));
-                window.draw(s);
+                    sf::Text req(completeFont, "MINIMUM COINS REQUIRED: " + std::to_string(requiredCoins), 26);
+                    sf::FloatRect rb = req.getLocalBounds();
+                    req.setOrigin({rb.size.x / 2.f, rb.size.y / 2.f});
+                    req.setPosition({camera.getCenter().x, 380.f});
+                    req.setFillColor(sf::Color(255, 215, 0));
+                    window.draw(req);
+
+                    sf::Text got(completeFont, "COINS COLLECTED: " + std::to_string(Coin::coinsCollected), 26);
+                    sf::FloatRect gb = got.getLocalBounds();
+                    got.setOrigin({gb.size.x / 2.f, gb.size.y / 2.f});
+                    got.setPosition({camera.getCenter().x, 420.f});
+                    got.setFillColor(sf::Color(200, 200, 200));
+                    window.draw(got);
+
+                    sf::Text resetHint(completeFont, "Press Ctrl+R to Restart", 22);
+                    sf::FloatRect hb = resetHint.getLocalBounds();
+                    resetHint.setOrigin({hb.size.x / 2.f, hb.size.y / 2.f});
+                    resetHint.setPosition({camera.getCenter().x, 480.f});
+                    resetHint.setFillColor(sf::Color(255, 255, 255));
+                    window.draw(resetHint);
+                } else {
+                    sf::Text t(completeFont, "LEVEL COMPLETE!", 48);
+                    sf::FloatRect b = t.getLocalBounds();
+                    t.setOrigin({b.size.x / 2.f, b.size.y / 2.f});
+                    t.setPosition({camera.getCenter().x, 330.f});
+                    t.setFillColor(sf::Color(100, 255, 100));
+                    window.draw(t);
+
+                    sf::Text s(completeFont, "Loading next level...", 22);
+                    sf::FloatRect sb = s.getLocalBounds();
+                    s.setOrigin({sb.size.x / 2.f, sb.size.y / 2.f});
+                    s.setPosition({camera.getCenter().x, 410.f});
+                    s.setFillColor(sf::Color(200, 200, 200));
+                    window.draw(s);
+                }
             }
 
-            if (levelCompleteClock.getElapsedTime().asSeconds() >= 1.5f) {
+            if (Coin::coinsCollected >= requiredCoins &&
+                levelCompleteClock.getElapsedTime().asSeconds() >= 1.5f) {
                 transitionReady = true;
             }
         }

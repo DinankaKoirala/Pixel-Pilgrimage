@@ -19,7 +19,7 @@ class Tilemap{
     private:
         int tileCountX = 0,tileCountY = 0;
         std::vector<std::vector<TileType>> tileGrid;
-        sf::Texture stoneTexture , grassTexture , obstacleTexture;
+        sf::Texture stoneTexture , grassTexture , obstacleTexture ,TrapTexture;
 
     public:
         static constexpr int TileSize = 32;

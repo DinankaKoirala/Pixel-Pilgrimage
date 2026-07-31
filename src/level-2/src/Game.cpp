@@ -144,7 +144,7 @@ void Game::processEvents()
         {
             if (gameOver && mouseclick->button == sf::Mouse::Button::Left)
             {
-                DeathScreenResult result = deathScreen.getInput(sf::Vector2f(mouseclick->position));
+                DeathScreenResult result = deathScreen.getInput(window, mouseclick->position);
                 if (result == DeathScreenResult::Exit)
                 {
                     window.close();

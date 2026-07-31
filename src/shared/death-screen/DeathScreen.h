@@ -17,10 +17,15 @@ class DeathScreen{
     sf::Text yesText;
     sf::Text noText;
     sf::Text restartText;
+    float m_designWidth;
+    float m_designHeight;
+
+    sf::View uiView() const;
+    void layout();
 
     public:
     DeathScreen(float width,float height, const std::string& fontPath);
     void draw(sf::RenderWindow& window);
-    DeathScreenResult getInput(sf::Vector2f mousepos);
+    DeathScreenResult getInput(sf::RenderWindow& window, sf::Vector2i pixelPos);
 
 };

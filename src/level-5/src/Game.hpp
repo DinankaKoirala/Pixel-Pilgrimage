@@ -92,13 +92,11 @@ private:
     struct DripstoneEntry {
         sf::ConvexShape shape;
         sf::ConvexShape warningShape;
-        sf::Sprite sprite;
         enum State { Telegraphing, Falling, Landed } state = Telegraphing;
         float telegraphTimer = 0.f;
         float fallSpeed = 0.f;
         float groundY = 0.f;
         sf::Vector2f size{20.f, 40.f};
-        DripstoneEntry(const sf::Texture& tex) : sprite(tex) {}
     };
     std::vector<DripstoneEntry> dripstones;
     float dripstoneSpawnTimer;

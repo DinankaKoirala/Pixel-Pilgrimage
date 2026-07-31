@@ -385,7 +385,7 @@ void Game5::updateDripstones(float dt) {
         float span = dripstoneMaxX - dripstoneMinX;
         float x = dripstoneMinX + static_cast<float>(std::rand() % static_cast<int>(span > 0.f ? span : 1.f));
 
-        dripstones.emplace_back(bgTexture);
+        dripstones.emplace_back();
         auto& entry = dripstones.back();
         entry.size = {20.f, 40.f};
         entry.state = DripstoneEntry::Telegraphing;
@@ -406,8 +406,6 @@ void Game5::updateDripstones(float dt) {
         entry.warningShape.setPoint(2, {entry.size.x / 2.f, entry.size.y});
         entry.warningShape.setFillColor(sf::Color(255, 60, 60, 90));
         entry.warningShape.setPosition({x, dripstoneCeilingY});
-
-        entry.sprite.setPosition({x + entry.size.x / 2.f, dripstoneCeilingY + entry.size.y / 2.f});
     }
 
     for (auto& e : dripstones) {
@@ -422,7 +420,6 @@ void Game5::updateDripstones(float dt) {
                 e.shape.setPosition({pos.x, e.groundY - e.size.y});
                 e.state = DripstoneEntry::Landed;
             }
-            e.sprite.setPosition(e.shape.getPosition() + sf::Vector2f(e.size.x / 2.f, e.size.y / 2.f));
         }
     }
 
@@ -497,7 +494,6 @@ void Game5::render() {
             window.draw(e.warningShape);
         } else {
             window.draw(e.shape);
-            window.draw(e.sprite);
         }
     }
 

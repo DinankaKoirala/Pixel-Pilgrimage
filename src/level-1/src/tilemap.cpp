@@ -83,7 +83,8 @@ void Tilemap::draw(sf::RenderWindow& window) const {
                 rect.setTextureRect(sf::IntRect({0, 0}, {32, 32}));
             }
             else if (tile == TileType::Trigger){
-                rect.setFillColor(sf::Color::Red);
+                rect.setFillColor(sf::Color::White);
+                rect.setTexture(&TrapTexture);
             }
             else {
                 rect.setFillColor(sf::Color::Black);
@@ -109,6 +110,11 @@ bool Tilemap::loadTexture(const std::string& path , const std::string Block){
     }
     if(Block == "Obstacle"){
         if(!obstacleTexture.loadFromFile(path)){
+        return false;
+        }
+    }
+    if(Block == "Trap"){
+        if(!TrapTexture.loadFromFile(path)){
         return false;
         }
     }

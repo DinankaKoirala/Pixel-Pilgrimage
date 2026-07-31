@@ -92,7 +92,7 @@ void Game::processEvents() {
 
         if (const auto* mbp = event->getIf<sf::Event::MouseButtonPressed>()) {
             if (mbp->button == sf::Mouse::Button::Left && m_state == GameState::GameOver && !m_deathHandled) {
-                DeathScreenResult result = m_deathScreen.getInput(sf::Vector2f(mbp->position));
+                DeathScreenResult result = m_deathScreen.getInput(m_window, mbp->position);
                 if (result == DeathScreenResult::Exit) {
                     m_window.close();
                 } else if (result == DeathScreenResult::Restart) {

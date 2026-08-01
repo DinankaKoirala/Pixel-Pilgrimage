@@ -30,6 +30,17 @@ Game4::Game4(sf::RenderWindow& win)
     trees.emplace_back(SW * 0.3f, 1.1f);
     trees.emplace_back(SW * 0.6f, 0.8f);
     trees.emplace_back(SW * 0.9f, 1.0f);
+
+    loadSounds();
+}
+
+void Game4::loadSounds() {
+    if (jumpBuffer.loadFromFile("../src/level-4/assets/jump.mp3")) jumpSound.emplace(jumpBuffer);
+    if (coinBuffer.loadFromFile("../src/level-4/assets/coinspickup.mp3")) coinSound.emplace(coinBuffer);
+    if (heartBuffer.loadFromFile("../src/level-4/assets/heartminus.mp3")) heartSound.emplace(heartBuffer);
+    if (gameOverBuffer.loadFromFile("../src/level-4/assets/gameover.mp3")) gameOverSound.emplace(gameOverBuffer);
+    if (deerBuffer.loadFromFile("../src/level-4/assets/deer.mp3")) deerSound.emplace(deerBuffer);
+    if (yetiBuffer.loadFromFile("../src/level-4/assets/yeti sound.mp3")) yetiSound.emplace(yetiBuffer);
 }
 
 bool Game4::run() {
@@ -62,7 +73,9 @@ void Game4::processEvents() {
                 if (key->code == sf::Keyboard::Key::Space ||
                     key->code == sf::Keyboard::Key::Up ||
                     key->code == sf::Keyboard::Key::W) {
-                    player.jump();
+                    if (player.jump() && jumpSound) {
+                        jumpSound->play();
+                    }
                 }
             }
             if (key->code == sf::Keyboard::Key::R && gameOver) {
@@ -134,6 +147,10 @@ void Game4::update(float dt) {
 
     checkCollisions();
 
+    if (gameOver && gameOverSound) {
+        gameOverSound->play();
+    }
+
     coins.erase(std::remove_if(coins.begin(), coins.end(),
         [](const Coin& c) { return c.x < -50.f; }), coins.end());
     rocks.erase(std::remove_if(rocks.begin(), rocks.end(),
@@ -177,6 +194,9 @@ void Game4::spawnObjects(float dt) {
         if (deerEnemies.empty() || !deerEnemies.back().active) {
             deerEnemies.emplace_back();
             deerEnemies.back().spawn();
+            if (deerSound) {
+                deerSound->play();
+            }
         }
     }
 
@@ -200,7 +220,14 @@ void Game4::checkCollisions() {
             c.collected = true;
             coinCount++;
             score += 50;
-            player.setYetiMode(coinCount % 10 == 5);
+            bool yeti = (coinCount % 10 == 5);
+            player.setYetiMode(yeti);
+            if (coinSound) {
+                coinSound->play();
+            }
+            if (yeti && yetiSound) {
+                yetiSound->play();
+            }
         }
     }
 
@@ -209,6 +236,9 @@ void Game4::checkCollisions() {
         if (pb.findIntersection(r.bounds())) {
             r.counted = true;
             lives--;
+            if (heartSound) {
+                heartSound->play();
+            }
             player.hit();
             if (lives <= 0) {
                 gameOver = true;
@@ -224,6 +254,9 @@ void Game4::checkCollisions() {
             d.dead = true;
             d.active = false;
             lives--;
+            if (heartSound) {
+                heartSound->play();
+            }
             player.hit();
             if (lives <= 0) {
                 gameOver = true;
@@ -237,6 +270,9 @@ void Game4::checkCollisions() {
         if (!g.active) continue;
         if (pb.findIntersection(g.bounds())) {
             lives--;
+            if (heartSound) {
+                heartSound->play();
+            }
             player.hit();
             g.active = false;
             if (lives <= 0) {

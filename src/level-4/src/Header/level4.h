@@ -140,7 +140,7 @@ public:
     Player();
     void setYetiMode(bool on);
     int maxJumps()const;
-    void jump();
+    bool jump();
     void update(float dt);
     void hit();
     void draw(sf::RenderWindow& w);

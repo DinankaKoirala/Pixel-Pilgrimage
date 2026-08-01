@@ -244,10 +244,11 @@ void Player::setYetiMode(bool on){
     int maxJ=yetiMode?3:2;
     if(jumpsLeft>maxJ) jumpsLeft=maxJ;}
 int Player::maxJumps()const{return yetiMode?3:2;}
-void Player::jump(){
-    if(jumpsLeft<=0)return;
+bool Player::jump(){
+    if(jumpsLeft<=0)return false;
     float vel=(jumpsLeft==maxJumps())?-450.f:(jumpsLeft==2?-390.f:-340.f);
-    vy=vel; --jumpsLeft;}
+    vy=vel; --jumpsLeft;
+    return true;}
 void Player::update(float dt){
     if(jumpsLeft<maxJumps()||y<groundYat(PX)){vy+=920.f*dt;y+=vy*dt;}
     float gy=groundYat(PX);

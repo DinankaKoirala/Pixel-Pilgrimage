@@ -36,11 +36,11 @@ Game4::Game4(sf::RenderWindow& win)
 
 void Game4::loadSounds() {
     if (jumpBuffer.loadFromFile("../src/level-4/assets/jump.mp3")) jumpSound.emplace(jumpBuffer);
-    if (coinBuffer.loadFromFile("../src/level-4/assets/coinspickup.mp3")) coinSound.emplace(coinBuffer);
+    if (coinBuffer.loadFromFile("../src/level-4/assets/coin.mp3")) coinSound.emplace(coinBuffer);
     if (heartBuffer.loadFromFile("../src/level-4/assets/heartminus.mp3")) heartSound.emplace(heartBuffer);
     if (gameOverBuffer.loadFromFile("../src/level-4/assets/gameover.mp3")) gameOverSound.emplace(gameOverBuffer);
     if (deerBuffer.loadFromFile("../src/level-4/assets/deer.mp3")) deerSound.emplace(deerBuffer);
-    if (yetiBuffer.loadFromFile("../src/level-4/assets/yeti sound.mp3")) yetiSound.emplace(yetiBuffer);
+    if (yetiBuffer.loadFromFile("../src/level-4/assets/yeti.mp3")) yetiSound.emplace(yetiBuffer);
 }
 
 bool Game4::run() {

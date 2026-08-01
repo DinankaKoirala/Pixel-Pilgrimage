@@ -3,8 +3,13 @@
 
 int Coin::coinsCollected = 0;
 
-Coin::Coin(float coinOriginX , float coinOriginY):sprite(coinTexture){
+Coin::Coin(float coinOriginX , float coinOriginY){
 hitbox = sf::FloatRect({coinOriginX,coinOriginY},{32,32}); 
+}
+
+void Coin::update(float dt, const std::vector<sf::FloatRect>& solids) {
+    (void)dt;
+    (void)solids;
 }
 
 bool Coin::loadTextures(const std::string& path){
@@ -31,11 +36,7 @@ void Coin::draw(sf::RenderWindow& window){
     */
 }
 
-sf::Vector2f Coin::getPosition() const{
-    return hitbox.position;
-}
-
-sf::FloatRect Coin::getCoinHitbox() const{
+sf::FloatRect Coin::getHitbox() const{
     return hitbox;
 }
 void Coin::reset(float spawnX, float spawnY){

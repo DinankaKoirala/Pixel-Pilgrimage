@@ -96,6 +96,23 @@ static bool runLevel1(sf::RenderWindow& window)
     Background background;
     background.loadTexture("../src/level-1/assets/textures/background.png");
 
+    std::vector<Entity*> entities;
+    entities.reserve(1 + enemies.size() + coins.size());
+    entities.push_back(&player);
+    for (Enemy& enemy : enemies) {
+        entities.push_back(&enemy);
+    }
+    for (Coin& coin : coins) {
+        entities.push_back(&coin);
+    }
+
+    std::vector<Drawable*> scene = { &background, &tilemap };
+    std::vector<Drawable*> sceneEntities;
+    sceneEntities.reserve(entities.size());
+    for (Entity* entity : entities) {
+        sceneEntities.push_back(entity);
+    }
+
     const int requiredCoins = 7;
 
     sf::Font scoreFont;
@@ -172,14 +189,13 @@ static bool runLevel1(sf::RenderWindow& window)
 
         if (!levelComplete && playerAlive) {
             player.handleInput();
-            player.update(dt, solids);
 
-            for (Enemy& enemy : enemies) {
-                enemy.update(dt, solids);
+            for (Entity* entity : entities) {
+                entity->update(dt, solids);
             }
 
             for (Enemy& enemy : enemies) {
-                if (auto overlap = player.getPlayerHitbox().findIntersection(enemy.getEnemyHitbox())) {
+                if (auto overlap = player.getHitbox().findIntersection(enemy.getHitbox())) {
                     playerAlive = false;
                     audio.playSFX("hurt");
                 }
@@ -190,7 +206,7 @@ static bool runLevel1(sf::RenderWindow& window)
                 audio.playSFX("hurt");
             }
             for (const sf::FloatRect& trap : traps) {
-                if (auto overlap = player.getPlayerHitbox().findIntersection(trap)) {
+                if (auto overlap = player.getHitbox().findIntersection(trap)) {
                     playerAlive = false;
                     audio.playSFX("hurt");
                 }
@@ -198,7 +214,7 @@ static bool runLevel1(sf::RenderWindow& window)
 
             for (Coin& coin : coins) {
                 if (!coin.isCollected()) {
-                    if (auto overlap = player.getPlayerHitbox().findIntersection(coin.getCoinHitbox())) {
+                    if (auto overlap = player.getHitbox().findIntersection(coin.getHitbox())) {
                         coin.collect();
                         audio.playSFX("coin");
                     }
@@ -208,7 +224,7 @@ static bool runLevel1(sf::RenderWindow& window)
             int score = Coin::coinsCollected;
             scoreText.setString("COINS: " + std::to_string(score) + "/" + std::to_string(requiredCoins));
 
-            sf::FloatRect playerBox = player.getPlayerHitbox();
+            sf::FloatRect playerBox = player.getHitbox();
             float playerRight = playerBox.position.x + playerBox.size.x;
             if (playerRight >= triggerX) {
                 levelComplete = true;
@@ -231,18 +247,14 @@ static bool runLevel1(sf::RenderWindow& window)
         window.setView(camera);
 
         window.clear();
-        background.draw(window, camera.getCenter().x);
-        tilemap.draw(window);
+        background.setCameraPos(camera.getCenter().x);
+        for (Drawable* drawable : scene) {
+            drawable->draw(window);
+        }
 
         if (!levelComplete) {
-            player.draw(window);
-            for (Enemy& enemy : enemies) {
-                enemy.draw(window);
-            }
-            for (Coin& coin : coins) {
-                if (!coin.isCollected()) {
-                    coin.draw(window);
-                }
+            for (Drawable* drawable : sceneEntities) {
+                drawable->draw(window);
             }
         }
 

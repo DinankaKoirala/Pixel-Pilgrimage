@@ -1,6 +1,6 @@
 #include"Header/enemy.h"
 
-Enemy::Enemy(float enemyOriginX , float enemyOriginY):sprite(enemyTexture){
+Enemy::Enemy(float enemyOriginX , float enemyOriginY){
 hitbox = sf::FloatRect({enemyOriginX,enemyOriginY},{64,32}); 
 }
 bool Enemy::loadTextures(const std::string& path){
@@ -30,11 +30,7 @@ void Enemy::draw(sf::RenderWindow& window){
     */
 }
 
-sf::Vector2f Enemy::getPosition() const{
-    return hitbox.position;
-}
 void Enemy::update( float dt , const std::vector<sf::FloatRect>& solids){
-
      float probeX = movingRight ? hitbox.position.x + hitbox.size.x + 5.f : hitbox.position.x - 5.f;
     float probeY = hitbox.position.y + hitbox.size.y + 6.f;
     sf::Vector2f probePoint = {probeX, probeY};
@@ -70,7 +66,7 @@ void Enemy::update( float dt , const std::vector<sf::FloatRect>& solids){
         }
 }
 
-sf::FloatRect Enemy::getEnemyHitbox() const{
+sf::FloatRect Enemy::getHitbox() const{
     return hitbox;
 }
 

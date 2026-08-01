@@ -3,7 +3,7 @@
 #include<vector>
 #include <SFML/Graphics.hpp>
 
-Player::Player(float playerOriginX , float playerOriginY,AudioManager& audio):sprite(idleTexture), audio(audio)
+Player::Player(float playerOriginX , float playerOriginY,AudioManager& audio):audio(audio)
 {
     hitbox = sf::FloatRect({playerOriginX,playerOriginY},{32.f,48.f});
 }
@@ -162,10 +162,6 @@ void Player::handleInput() {
 }
 
 
-sf::Vector2f Player::getPosition() const {
-    return hitbox.position;
-}
-
 bool Player::loadTextures(){
     if(!idleTexture.loadFromFile("../src/level-1/assets/textures/idle.png" )) return false;
     if(!walkTexture.loadFromFile("../src/level-1/assets/textures/walk_spritesheet.png" )) return false;
@@ -175,7 +171,7 @@ bool Player::loadTextures(){
     sprite.setTexture(idleTexture, true);
     return true;
 }
-sf::FloatRect Player::getPlayerHitbox() const{
+sf::FloatRect Player::getHitbox() const{
     return hitbox;
 }
 

@@ -14,7 +14,10 @@ bool Background::loadTexture(const std::string& path){
     BackgroundWidth = BackgroundTexture.getSize().x;
     return true;
 }
-void Background::draw(sf::RenderWindow& window, float cameraPosX){
+void Background::setCameraPos(float x){
+    cameraPosX = x;
+}
+void Background::draw(sf::RenderWindow& window){
     float cameraLeft = cameraPosX - window.getSize().x / 2.f;
 
     int backgroundIndex = static_cast<int>(cameraLeft / BackgroundWidth);

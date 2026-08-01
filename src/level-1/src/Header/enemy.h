@@ -1,21 +1,19 @@
 #pragma once
 #include<vector>
 #include<SFML/Graphics.hpp>
+#include "entity.h"
 
- class Enemy {
+ class Enemy : public Entity {
     private:
-    sf::FloatRect hitbox;
     sf::Texture enemyTexture;
-    sf::Sprite sprite;
     float speed=20.f;
     bool movingRight = true;
 
     public:
     Enemy(float enemyOriginX , float enemyOriginY);
-    void update( float dt , const std::vector<sf::FloatRect>& solids);
+    void update( float dt , const std::vector<sf::FloatRect>& solids) override;
     bool loadTextures(const std::string& path);
-    void draw(sf::RenderWindow& window);
-    sf::Vector2f getPosition() const;
-    sf::FloatRect getEnemyHitbox() const;
-    void reset(float spawnX, float spawnY);
+    void draw(sf::RenderWindow& window) override;
+    sf::FloatRect getHitbox() const override;
+    void reset(float spawnX, float spawnY) override;
  };

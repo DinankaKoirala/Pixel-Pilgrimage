@@ -60,7 +60,7 @@ bool Tilemap::loadFromImage(const std::string& path){
     return true;
 }
 
-void Tilemap::draw(sf::RenderWindow& window) const {
+void Tilemap::draw(sf::RenderWindow& window) {
     sf::RectangleShape rect({(float)TileSize , (float)TileSize});
     for(int rows = 0 ; rows < tileCountY ; rows++){
         for(int cols = 0 ; cols < tileCountX ; cols++){

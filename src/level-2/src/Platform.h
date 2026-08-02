@@ -2,6 +2,8 @@
 #pragma once
 #include "GameObject.h"
 
+namespace L2 {
+
 class Platform : public GameObject {
 public:
     Platform(const sf::Texture& texture, sf::Vector2f position)//calls the constructor of the base class GameObject
@@ -10,3 +12,5 @@ public:
 
     virtual bool isSolid() const { return true; } // player can stand on it
 };
+
+} // namespace L2

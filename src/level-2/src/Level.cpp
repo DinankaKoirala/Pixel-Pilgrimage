@@ -3,6 +3,8 @@
 #include "CrackedPlatform.h"
 #include <cstdlib>
 
+namespace L2 {
+
 void createLevel(
     std::vector<std::unique_ptr<Platform>>& platforms,
     std::vector<std::unique_ptr<Coin>>& coins,
@@ -100,3 +102,5 @@ void restartGame(
 
     gameOver = false;
 }
+
+} // namespace L2

@@ -9,10 +9,12 @@
 #include <algorithm>
 #include <optional>
 
+namespace L4 {
+
 // ── constants ──────────────────────────────────────────────────────────────────
-static constexpr float SW=800.f,SH=480.f;
-static constexpr float BASE_SPEED=140.f;
-static constexpr float BASE_Y=430.f, SLOPE=0.20f;
+inline constexpr float SW=800.f,SH=480.f;
+inline constexpr float BASE_SPEED=140.f;
+inline constexpr float BASE_Y=430.f, SLOPE=0.20f;
 
 inline float groundYat(float x){return BASE_Y-SLOPE*x;}
 
@@ -138,7 +140,7 @@ public:
     Player();
     void setYetiMode(bool on);
     int maxJumps()const;
-    void jump();
+    bool jump();
     void update(float dt);
     void hit();
     void draw(sf::RenderWindow& w);
@@ -171,5 +173,7 @@ private:
     void digit(sf::RenderWindow& w,int d,float x,float y,sf::Color c);
     void drawNum(sf::RenderWindow& w,int n,float x,float y,sf::Color c);
 };
+
+} // namespace L4
 
 #endif

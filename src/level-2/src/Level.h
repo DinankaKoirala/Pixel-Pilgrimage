@@ -9,6 +9,8 @@
 #include "StarSpawner.h"
 #include "Coin.h"
 
+namespace L2 {
+
 // Builds a fresh row of platforms (with cracked platforms mixed in),
 // sprinkles a coin above every Nth regular platform, and registers the
 // cracked platforms' ninja-star spawn points.
@@ -31,3 +33,5 @@ void restartGame(
     const sf::Texture& blockTex,
     const sf::Texture& crackedTex,
     const sf::Texture& coinTex);
+
+} // namespace L2

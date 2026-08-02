@@ -1,19 +1,18 @@
 #pragma once
 #include <vector>
-#include<SFML/Graphics.hpp>
-#include"audioManager.h"
+#include <SFML/Graphics.hpp>
+#include "entity.h"
+#include "audioManager.h"
 
 enum class PlayerState { Idle, Walk, Jump, Crouch };
 
-class Player{
+class Player : public Entity {
     private:
-    sf::FloatRect hitbox;
     sf::Texture idleTexture;
     sf::Texture walkTexture;
     sf::Texture jumpTexture;
     sf::Texture crouchTexture;
 
-    sf::Sprite sprite;
     sf::Vector2f velocity;
     static constexpr float GRAVITY = 225;
     bool onGround = false;
@@ -27,11 +26,10 @@ class Player{
 
     public:
     Player(float playerOriginX,float playerOriginY,AudioManager& audio);
-    void update(float dt , const std::vector<sf::FloatRect>& solids);
-    void draw(sf::RenderWindow& window);
+    void update(float dt , const std::vector<sf::FloatRect>& solids) override;
+    void draw(sf::RenderWindow& window) override;
     void handleInput();
-    sf::Vector2f getPosition() const;
     bool loadTextures();
-    sf::FloatRect getPlayerHitbox() const;
-    void reset(float spawnX, float spawnY);
+    sf::FloatRect getHitbox() const override;
+    void reset(float spawnX, float spawnY) override;
 };

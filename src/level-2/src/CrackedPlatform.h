@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <cstdint>
 
+namespace L2 {
+
 class CrackedPlatform : public Platform//inheritance from platform class, which inherits from GameObject class
 {
 public:
@@ -130,3 +132,5 @@ private:
     const float maxShakeOffset = 4.f;    // pixels, at peak intensity right before falling
     const float maxShakeRotation = 3.f;  // degrees, at peak intensity right before falling
 };
+
+} // namespace L2

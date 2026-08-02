@@ -1,13 +1,17 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <vector>
+#include <optional>
 #include "level4.h"
 #include "death-screen/DeathScreen.h"
 
+namespace L4 {
+
 class Game4 {
 public:
-    Game4();
-    void run();
+    Game4(sf::RenderWindow& win);
+    bool run();
 
 private:
     void processEvents();
@@ -15,8 +19,9 @@ private:
     void render();
     void spawnObjects(float dt);
     void checkCollisions();
+    void loadSounds();
 
-    sf::RenderWindow window;
+    sf::RenderWindow& window;
     sf::Clock clock;
 
     Sky sky;
@@ -34,6 +39,19 @@ private:
 
     DeathScreen deathScreen;
 
+    sf::SoundBuffer jumpBuffer;
+    std::optional<sf::Sound> jumpSound;
+    sf::SoundBuffer coinBuffer;
+    std::optional<sf::Sound> coinSound;
+    sf::SoundBuffer heartBuffer;
+    std::optional<sf::Sound> heartSound;
+    sf::SoundBuffer gameOverBuffer;
+    std::optional<sf::Sound> gameOverSound;
+    sf::SoundBuffer deerBuffer;
+    std::optional<sf::Sound> deerSound;
+    sf::SoundBuffer yetiBuffer;
+    std::optional<sf::Sound> yetiSound;
+
     float gameSpeed;
     float score;
     int coinCount;
@@ -50,3 +68,5 @@ private:
 
     static constexpr float WIN_SCORE = 500.f;
 };
+
+} // namespace L4

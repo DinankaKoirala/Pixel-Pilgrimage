@@ -3,6 +3,8 @@
 #include "GameObject.h"
 #include <cmath>
 
+namespace L2 {
+
 // A collectible that floats above a platform. Purely decorative animation
 // (spin + bob) until the player touches it - Game.cpp is what actually
 // marks it collected and reacts (score + speed boost).
@@ -48,3 +50,5 @@ private:
     const float bobSpeed = 2.f;
     const float bobAmount = 6.f;    // pixels
 };
+
+} // namespace L2

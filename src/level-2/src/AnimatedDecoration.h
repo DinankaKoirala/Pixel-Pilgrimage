@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstdlib>
 
+namespace L2 {
+
 class SwayingTree : public Decoration //inheritance
 {
 public:
@@ -51,6 +53,7 @@ private:
 	const float bobAmount = 6.f;   // pixels moves 6 pixels up and down
     const float tiltAmount = 8.f;  // degrees rotates 8 degrees 
 };
+
 class DriftingCloud : public Decoration
 {
 public:
@@ -77,3 +80,5 @@ private:
     const float bobSpeed = 0.4f;//very slow movement 
     const float bobAmount = 4.f; // moves by 4 pixels
 };
+
+} // namespace L2

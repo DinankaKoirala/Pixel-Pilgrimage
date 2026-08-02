@@ -1,2 +1,4 @@
 #pragma once
-void runLevel2();
+#include <SFML/Graphics.hpp>
+
+bool runLevel2(sf::RenderWindow& window);

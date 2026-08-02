@@ -1,15 +1,8 @@
-#include <cstdlib>
-#include <iostream>
+#include "runLevel3.h"
+#include "level-3/Game.hpp"
 
-void runLevel3()
+bool runLevel3(sf::RenderWindow& window)
 {
-    std::cout << "Loading level 3..." << std::endl;
-#ifdef _WIN32
-    int result = std::system("PixelPilgrimage_level3.exe");
-#else
-    int result = std::system("./PixelPilgrimage_level3");
-#endif
-    if (result != 0) {
-        std::cerr << "Level 3 exited with code " << result << std::endl;
-    }
+    Game game(window);
+    return game.run();
 }

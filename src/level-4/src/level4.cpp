@@ -1,5 +1,7 @@
 #include "Header/level4.h"
 
+namespace L4 {
+
 // ── SKY ───────────────────────────────────────────────────────────────────────
 Sky::Sky(){clouds={{60,45,90},{230,28,110},{420,50,85},{600,32,100},{740,55,72}};}
 void Sky::update(float dt){for(auto&c:clouds){c.x-=22.f*dt;if(c.x+c.w<0)c.x=SW+20.f;}}
@@ -242,10 +244,11 @@ void Player::setYetiMode(bool on){
     int maxJ=yetiMode?3:2;
     if(jumpsLeft>maxJ) jumpsLeft=maxJ;}
 int Player::maxJumps()const{return yetiMode?3:2;}
-void Player::jump(){
-    if(jumpsLeft<=0)return;
+bool Player::jump(){
+    if(jumpsLeft<=0)return false;
     float vel=(jumpsLeft==maxJumps())?-450.f:(jumpsLeft==2?-390.f:-340.f);
-    vy=vel; --jumpsLeft;}
+    vy=vel; --jumpsLeft;
+    return true;}
 void Player::update(float dt){
     if(jumpsLeft<maxJumps()||y<groundYat(PX)){vy+=920.f*dt;y+=vy*dt;}
     float gy=groundYat(PX);
@@ -329,3 +332,5 @@ void GameOverScreen::digit(sf::RenderWindow&w,int d,float x,float y,sf::Color c)
     if(S[d][6]){h.setPosition({x,y+16});w.draw(h);}}
 void GameOverScreen::drawNum(sf::RenderWindow&w,int n,float x,float y,sf::Color c){
     for(char ch:std::to_string(n)){digit(w,ch-'0',x,y,c);x+=14.f;}}
+
+} // namespace L4

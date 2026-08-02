@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <cmath>
 
-Game::Game()
-    : m_window(sf::VideoMode({(unsigned)Constants::WINDOW_WIDTH, (unsigned)Constants::WINDOW_HEIGHT}), "Rescue the Princess")
+Game::Game(sf::RenderWindow& window)
+    : m_window(window)
     , m_knight(Constants::SLOPE_START, Constants::SLOPE_END)
     , m_villain(Constants::SLOPE_START, Constants::SLOPE_END)
     , m_princess()
@@ -14,6 +14,7 @@ Game::Game()
     , m_introSpeed(0.35f)
     , m_deathScreen((float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
 {
+    m_window.create(sf::VideoMode({Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT}), "Rescue the Princess");
     m_window.setFramerateLimit(60);
 
     if (m_backgroundTexture.loadFromFile("../src/level-3/assets/background.png")) {
@@ -46,7 +47,7 @@ Game::Game()
     m_princess.followAnchor(m_villain.getPosition());
 }
 
-void Game::run() {
+bool Game::run() {
     sf::Clock clock;
     while (m_window.isOpen()) {
         float dt = clock.restart().asSeconds();
@@ -60,10 +61,13 @@ void Game::run() {
         }
         if (m_state == GameState::Won && m_levelCompleteShown &&
             m_levelCompleteClock.getElapsedTime().asSeconds() >= 1.5f) {
-            m_window.close();
-            runLevel4();
+            return runLevel4(m_window);
+        }
+        if (m_state == GameState::Won && !m_window.isOpen()) {
+            return false;
         }
     }
+    return false;
 }
 
 void Game::processEvents() {
@@ -73,7 +77,8 @@ void Game::processEvents() {
         }
 
         if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
-            if (key->code == sf::Keyboard::Key::Space && m_state == GameState::Playing) {
+            if ((key->code == sf::Keyboard::Key::W ||
+                 key->code == sf::Keyboard::Key::Up) && m_state == GameState::Playing) {
                 m_knight.jump();
             }
             if (key->code == sf::Keyboard::Key::R &&
@@ -87,7 +92,7 @@ void Game::processEvents() {
 
         if (const auto* mbp = event->getIf<sf::Event::MouseButtonPressed>()) {
             if (mbp->button == sf::Mouse::Button::Left && m_state == GameState::GameOver && !m_deathHandled) {
-                DeathScreenResult result = m_deathScreen.getInput(sf::Vector2f(mbp->position));
+                DeathScreenResult result = m_deathScreen.getInput(m_window, mbp->position);
                 if (result == DeathScreenResult::Exit) {
                     m_window.close();
                 } else if (result == DeathScreenResult::Restart) {
@@ -115,8 +120,8 @@ void Game::update(float dt) {
         return;
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
         m_knight.moveUp(dt);
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) ||

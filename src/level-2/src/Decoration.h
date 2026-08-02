@@ -2,6 +2,8 @@
 #pragma once
 #include "GameObject.h"
 
+namespace L2 {
+
 // A purely visual background object (cloud, hill, tree, bird...) that
 // scrolls slower than the foreground to create a sense of depth (parallax scrolling).
 class Decoration : public GameObject
@@ -42,3 +44,5 @@ private:
     sf::Vector2f basePos;
 	float factor; //the smaller the factor the farther away the object is, and the slower it moves relative to the camera
 };
+
+} // namespace L2

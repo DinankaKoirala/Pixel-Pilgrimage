@@ -2,6 +2,9 @@
 #include "DecorationManager.h"
 #include <cstdlib>
 #include <cmath>
+
+namespace L2 {
+
 //background controller 
 //Initialization should happen only once. 
 //keeps the constructor simple and allows error checking when loading textures 
@@ -138,3 +141,5 @@ void DecorationManager::draw(sf::RenderWindow& window)
     for (auto& g : grass)  g->draw(window);
     for (auto& t : trees)  t->draw(window);
 }
+
+} // namespace L2

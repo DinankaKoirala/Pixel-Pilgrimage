@@ -5,6 +5,8 @@
 #include <SFML/Graphics.hpp>
 #include "NinjaStar.h"
 
+namespace L2 {
+
 class StarSpawnPoint
 {
 private:
@@ -34,3 +36,5 @@ public:
 private:
     std::vector<StarSpawnPoint> spawnPoints;
 };
+
+} // namespace L2

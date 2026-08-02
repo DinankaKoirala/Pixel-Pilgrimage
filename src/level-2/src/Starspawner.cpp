@@ -1,5 +1,7 @@
 #include "StarSpawner.h"
 
+namespace L2 {
+
 StarSpawnPoint::StarSpawnPoint(float crackedX, sf::Vector2f spawnPos)
 {
     crackedPlatformX = crackedX;
@@ -49,3 +51,5 @@ void StarSpawner::clear()
 {
     spawnPoints.clear();
 }
+
+} // namespace L2

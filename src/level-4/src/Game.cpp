@@ -3,9 +3,12 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include "runLevel5.h"
 
-Game4::Game4()
-    : window(sf::VideoMode({(unsigned)SW, (unsigned)SH}), "Winter Journey")
+namespace L4 {
+
+Game4::Game4(sf::RenderWindow& win)
+    : window(win)
     , deathScreen(SW, SH, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
     , gameSpeed(BASE_SPEED)
     , score(0)
@@ -20,6 +23,7 @@ Game4::Game4()
     , giantTimer(0)
     , distTimer(0)
 {
+    window.create(sf::VideoMode({(unsigned)SW, (unsigned)SH}), "Winter Journey");
     window.setFramerateLimit(60);
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
@@ -29,9 +33,20 @@ Game4::Game4()
     trees.emplace_back(SW * 0.3f, 1.1f);
     trees.emplace_back(SW * 0.6f, 0.8f);
     trees.emplace_back(SW * 0.9f, 1.0f);
+
+    loadSounds();
 }
 
-void Game4::run() {
+void Game4::loadSounds() {
+    if (jumpBuffer.loadFromFile("../src/level-4/assets/jump.mp3")) jumpSound.emplace(jumpBuffer);
+    if (coinBuffer.loadFromFile("../src/level-4/assets/coin.mp3")) coinSound.emplace(coinBuffer);
+    if (heartBuffer.loadFromFile("../src/level-4/assets/heartminus.mp3")) heartSound.emplace(heartBuffer);
+    if (gameOverBuffer.loadFromFile("../src/level-4/assets/gameover.mp3")) gameOverSound.emplace(gameOverBuffer);
+    if (deerBuffer.loadFromFile("../src/level-4/assets/deer.mp3")) deerSound.emplace(deerBuffer);
+    if (yetiBuffer.loadFromFile("../src/level-4/assets/yeti.mp3")) yetiSound.emplace(yetiBuffer);
+}
+
+bool Game4::run() {
     while (window.isOpen()) {
         float dt = clock.restart().asSeconds();
         if (dt > 1.f / 30.f) dt = 1.f / 30.f;
@@ -41,10 +56,13 @@ void Game4::run() {
         render();
 
         if (gameWon) {
-            window.close();
-            std::system("PixelPilgrimage_level5.exe");
+            return runLevel5(window);
+        }
+        if (!window.isOpen()) {
+            return false;
         }
     }
+    return false;
 }
 
 void Game4::processEvents() {
@@ -58,7 +76,9 @@ void Game4::processEvents() {
                 if (key->code == sf::Keyboard::Key::Space ||
                     key->code == sf::Keyboard::Key::Up ||
                     key->code == sf::Keyboard::Key::W) {
-                    player.jump();
+                    if (player.jump() && jumpSound) {
+                        jumpSound->play();
+                    }
                 }
             }
             if (key->code == sf::Keyboard::Key::R && gameOver) {
@@ -82,7 +102,7 @@ void Game4::processEvents() {
 
         if (const auto* mbp = event->getIf<sf::Event::MouseButtonPressed>()) {
             if (mbp->button == sf::Mouse::Button::Left && gameOver && !deathHandled) {
-                DeathScreenResult result = deathScreen.getInput(sf::Vector2f(mbp->position));
+                DeathScreenResult result = deathScreen.getInput(window, mbp->position);
                 if (result == DeathScreenResult::Exit) {
                     window.close();
                 } else if (result == DeathScreenResult::Restart) {
@@ -111,7 +131,7 @@ void Game4::update(float dt) {
     if (gameSpeed > 350.f) gameSpeed = 350.f;
 
     distTimer += dt;
-    score += (int)(gameSpeed * dt * 0.1f);
+    score += gameSpeed * dt * 0.1f;
 
     sky.update(dt);
     snowfall.update(dt);
@@ -129,6 +149,10 @@ void Game4::update(float dt) {
     player.update(dt);
 
     checkCollisions();
+
+    if (gameOver && gameOverSound) {
+        gameOverSound->play();
+    }
 
     coins.erase(std::remove_if(coins.begin(), coins.end(),
         [](const Coin& c) { return c.x < -50.f; }), coins.end());
@@ -157,7 +181,7 @@ void Game4::spawnObjects(float dt) {
     if (spawnTimer > coinInterval) {
         spawnTimer = 0;
         float cx = SW + 30.f;
-        float cy = groundYat(cx) - 40.f - (std::rand() % 60);
+        float cy = groundYat(cx) - 30.f - (std::rand() % 60);
         coins.emplace_back(cx, cy);
     }
 
@@ -173,6 +197,9 @@ void Game4::spawnObjects(float dt) {
         if (deerEnemies.empty() || !deerEnemies.back().active) {
             deerEnemies.emplace_back();
             deerEnemies.back().spawn();
+            if (deerSound) {
+                deerSound->play();
+            }
         }
     }
 
@@ -196,7 +223,14 @@ void Game4::checkCollisions() {
             c.collected = true;
             coinCount++;
             score += 50;
-            player.setYetiMode(coinCount % 10 == 5);
+            bool yeti = (coinCount % 10 == 5);
+            player.setYetiMode(yeti);
+            if (coinSound) {
+                coinSound->play();
+            }
+            if (yeti && yetiSound) {
+                yetiSound->play();
+            }
         }
     }
 
@@ -205,6 +239,9 @@ void Game4::checkCollisions() {
         if (pb.findIntersection(r.bounds())) {
             r.counted = true;
             lives--;
+            if (heartSound) {
+                heartSound->play();
+            }
             player.hit();
             if (lives <= 0) {
                 gameOver = true;
@@ -220,6 +257,9 @@ void Game4::checkCollisions() {
             d.dead = true;
             d.active = false;
             lives--;
+            if (heartSound) {
+                heartSound->play();
+            }
             player.hit();
             if (lives <= 0) {
                 gameOver = true;
@@ -233,6 +273,9 @@ void Game4::checkCollisions() {
         if (!g.active) continue;
         if (pb.findIntersection(g.bounds())) {
             lives--;
+            if (heartSound) {
+                heartSound->play();
+            }
             player.hit();
             g.active = false;
             if (lives <= 0) {
@@ -278,3 +321,5 @@ void Game4::render() {
 
     window.display();
 }
+
+} // namespace L4

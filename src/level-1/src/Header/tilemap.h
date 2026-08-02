@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include "drawable.h"
 
 enum class TileType {
     Air,
@@ -14,17 +15,17 @@ enum class TileType {
     Trigger
 };
 
-class Tilemap{
+class Tilemap : public Drawable {
 
     private:
         int tileCountX = 0,tileCountY = 0;
         std::vector<std::vector<TileType>> tileGrid;
-        sf::Texture stoneTexture , grassTexture , obstacleTexture;
+        sf::Texture stoneTexture , grassTexture , obstacleTexture ,TrapTexture;
 
     public:
         static constexpr int TileSize = 32;
         bool loadFromImage(const std::string& path);
-        void draw(sf::RenderWindow& window) const;
+        void draw(sf::RenderWindow& window) override;
         std::vector<sf::FloatRect> getSolidTiles() const;
         bool loadTexture(const std::string& path, const std::string Block);
         std::vector<sf::Vector2f> getEnemySpawnPoints() const;

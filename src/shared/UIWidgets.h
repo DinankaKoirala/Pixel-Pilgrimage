@@ -3,6 +3,8 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
+#include "GameSettings.h"
+#include "MenuMusic.h"
 
 class Button {
 public:
@@ -145,13 +147,13 @@ struct SettingsPanel {
         : visible(false),
         title(font, "SETTINGS"),
         diffLabel(font, "Difficulty:"),
-        musicVol(312.f + 50.f, 184.f + 80.f, 300.f, "Music Volume", font, 0.7f),
-        sfxVol(312.f + 50.f, 184.f + 140.f, 300.f, "SFX Volume", font, 0.8f),
-        brightness(312.f + 50.f, 184.f + 200.f, 300.f, "Brightness", font, 0.6f),
-        contrast(312.f + 50.f, 184.f + 250.f, 300.f, "Contrast", font, 0.6f),
-        fullscreen(312.f + 50.f, 184.f + 270.f, "Fullscreen", font, false),
-        showFPS(312.f + 50.f, 184.f + 300.f, "Show FPS", font, true),
-        particles(312.f + 50.f, 184.f + 330.f, "Particles", font, true),
+        musicVol(312.f + 50.f, 184.f + 80.f, 300.f, "Music Volume", font, GameSettings::get().musicVolume),
+        sfxVol(312.f + 50.f, 184.f + 140.f, 300.f, "SFX Volume", font, GameSettings::get().sfxVolume),
+        brightness(312.f + 50.f, 184.f + 200.f, 300.f, "Brightness", font, GameSettings::get().brightness),
+        contrast(312.f + 50.f, 184.f + 250.f, 300.f, "Contrast", font, GameSettings::get().contrast),
+        fullscreen(312.f + 50.f, 184.f + 270.f, "Fullscreen", font, GameSettings::get().fullscreen),
+        showFPS(312.f + 50.f, 184.f + 300.f, "Show FPS", font, GameSettings::get().showFPS),
+        particles(312.f + 50.f, 184.f + 330.f, "Particles", font, GameSettings::get().particles),
         btnEasy(312.f + 150.f, 184.f + 355.f, 60.f, 24.f, "Easy", font, sf::Color(40, 120, 40), sf::Color(60, 180, 60)),
         btnMed(312.f + 220.f, 184.f + 355.f, 60.f, 24.f, "Medium", font, sf::Color(120, 100, 20), sf::Color(200, 160, 30)),
         btnHard(312.f + 290.f, 184.f + 355.f, 60.f, 24.f, "Hard", font, sf::Color(120, 30, 30), sf::Color(200, 50, 50)),
@@ -177,9 +179,18 @@ struct SettingsPanel {
         fullscreen.click(mp);
         showFPS.click(mp);
         particles.click(mp);
+
+        if (btnEasy.contains(mp)) GameSettings::get().difficulty = 0;
+        if (btnMed.contains(mp))  GameSettings::get().difficulty = 1;
+        if (btnHard.contains(mp)) GameSettings::get().difficulty = 2;
         if (btnClose.contains(mp)) {
             visible = false;
         }
+
+        GameSettings& g = GameSettings::get();
+        g.fullscreen = fullscreen.on;
+        g.showFPS = showFPS.on;
+        g.particles = particles.on;
     }
 
     void handleDrag(sf::Vector2f mouse, bool pressed) {
@@ -187,9 +198,22 @@ struct SettingsPanel {
         sfxVol.drag(mouse, pressed);
         brightness.drag(mouse, pressed);
         contrast.drag(mouse, pressed);
+
+        GameSettings& g = GameSettings::get();
+        g.musicVolume = musicVol.value;
+        g.sfxVolume = sfxVol.value;
+        g.brightness = brightness.value;
+        g.contrast = contrast.value;
+
+        MenuMusic::updateVolume();
     }
 
     void draw(sf::RenderWindow& win, sf::Vector2f mouse) {
+        int diff = GameSettings::get().difficulty;
+        btnEasy.normal = (diff == 0) ? sf::Color(60, 200, 60) : sf::Color(40, 120, 40);
+        btnMed.normal  = (diff == 1) ? sf::Color(240, 200, 40) : sf::Color(120, 100, 20);
+        btnHard.normal = (diff == 2) ? sf::Color(240, 60, 60) : sf::Color(120, 30, 30);
+
         win.draw(panel);
         win.draw(title);
         musicVol.draw(win);

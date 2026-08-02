@@ -8,6 +8,7 @@
 #include "Header/ParticleSystem.hpp"
 #include "Header/Aura.hpp"
 #include "../shared/win/WinScreen.h"
+#include "GameSettings.h"
 
 namespace L5 {
 
@@ -42,7 +43,9 @@ Game5::Game5(sf::RenderWindow& win)
     , ambientTime(0.f), bgOverscan(1.06f)
     , survivalTimeRemaining(20.f), survivalDuration(20.f)
     , monkHealthPercent(100)
-    , maxLives(4), remainingLives(4), invincibilityTimer(0.f)
+    , maxLives(GameSettings::get().livesForDifficulty(4))
+    , remainingLives(GameSettings::get().livesForDifficulty(4))
+    , invincibilityTimer(0.f)
     , monkSprite(monkTexture)
     , monkBasePos(400.f, 200.f), monkPos(400.f, 200.f)
     , monkMovementTime(0.f)
@@ -59,7 +62,8 @@ Game5::Game5(sf::RenderWindow& win)
     , laughSound(laughBuffer)
     , laughTimer(8.f)
 {
-    window.create(sf::VideoMode(sf::VideoMode::getDesktopMode()), "Level 5 - Boss Fight", sf::State::Fullscreen);
+    const GameSettings& settings = GameSettings::get();
+    window.create(settings.windowVideoMode(), "Level 5 - Boss Fight", settings.windowState());
     window.setFramerateLimit(60);
     window.setView(window.getDefaultView());
 
@@ -67,6 +71,11 @@ Game5::Game5(sf::RenderWindow& win)
     winB = window.getSize().y;
     sx = static_cast<float>(winL) / 800.f;
     sy = static_cast<float>(winB) / 600.f;
+
+    if (settings.difficulty == 0)      survivalDuration = 25.f;
+    else if (settings.difficulty == 2) survivalDuration = 15.f;
+    else                               survivalDuration = 20.f;
+    survivalTimeRemaining = survivalDuration;
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
@@ -110,14 +119,16 @@ void Game5::loadAssets() {
     (void)laughBuffer.loadFromFile(base + "sounds/evil-laugh.wav");
     (void)bgm.openFromFile(base + "sounds/bgm.mp3");
     bgm.setLooping(true);
-    bgm.setVolume(70.f);
+    bgm.setVolume(70.f * GameSettings::get().musicScale());
     bgm.play();
 
     hitSound.setBuffer(hitBuffer);
     whooshSound.setBuffer(whooshBuffer);
     laughSound.setBuffer(laughBuffer);
-    whooshSound.setVolume(10.f);
-    laughSound.setVolume(500.f);
+    float sfxScale = GameSettings::get().sfxScale();
+    hitSound.setVolume(100.f * sfxScale);
+    whooshSound.setVolume(10.f * sfxScale);
+    laughSound.setVolume(500.f * sfxScale);
 }
 
 void Game5::initPlayer() {
@@ -172,10 +183,12 @@ void Game5::initOrb() {
 
 bool Game5::run() {
     sf::Clock clock;
+    sf::Clock fpsClock;
     Aura staffAura(sf::Color(190, 120, 255), 16.f * sx);
 
     while (window.isOpen()) {
         float dt = clock.restart().asSeconds();
+        SettingsFX::tick(fpsClock.restart().asSeconds());
         if (dt > 1.f / 30.f) dt = 1.f / 30.f;
 
         ambientTime += dt;
@@ -185,6 +198,7 @@ bool Game5::run() {
         staffAura.update(dt, monkPos + sf::Vector2f(staffOffsetLocal.x * monkSprite.getScale().x, staffOffsetLocal.y * monkSprite.getScale().y));
         render();
         window.draw(staffAura);
+        SettingsFX::draw(window);
         window.display();
 
         if (gameWon && !deathHandled) {

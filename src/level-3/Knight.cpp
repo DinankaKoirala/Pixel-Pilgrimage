@@ -1,5 +1,6 @@
 #include "Knight.hpp"
 #include "Utility.hpp"
+#include "GameSettings.h"
 #include <cmath>
 
 Knight::Knight(sf::Vector2f slopeStart, sf::Vector2f slopeEnd)
@@ -11,7 +12,7 @@ Knight::Knight(sf::Vector2f slopeStart, sf::Vector2f slopeEnd)
       m_jumpTimer(0.f),
       m_jumpDuration(0.55f),
       m_jumpHeight(80.f),
-      m_lives(3),
+      m_lives(GameSettings::get().livesForDifficulty(3)),
       m_invulnTimer(0.f)
 {
     sf::Vector2f diff = m_slopeEnd - m_slopeStart;
@@ -101,7 +102,7 @@ void Knight::takeDamage(int amount) {
 
 void Knight::reset() {
     m_t = 0.f;
-    m_lives = 3;
+    m_lives = GameSettings::get().livesForDifficulty(3);
     m_jumping = false;
     m_jumpTimer = 0.f;
     m_invulnTimer = 0.f;

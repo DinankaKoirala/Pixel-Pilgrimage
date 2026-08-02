@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "Level.h"
 #include "runLevel3.h"
+#include "GameSettings.h"
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
@@ -18,9 +19,12 @@ Game::Game(sf::RenderWindow& win)
     , deathScreen(1280.f, 720.f, "../src/level-2/assets/Vipnagorgialla Bd.otf")
 {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
-    window.create(sf::VideoMode({ 1280u, 720u }), "Bridge Level");
+    const GameSettings& settings = GameSettings::get();
+    window.create(settings.windowVideoMode(), "Bridge Level", settings.windowState());
     window.setFramerateLimit(60);
     window.setView(view);
+
+    crackedPlatformsToWin = (settings.difficulty == 0) ? 8 : (settings.difficulty == 2 ? 12 : 10);
 
     completeFontLoaded = completeFont.openFromFile(assetsPath + "Cinzel-Regular.ttf");
 
@@ -91,16 +95,24 @@ bool Game::loadAssets()
 
     deathSound.emplace(deathBuffer);
 
+    float sfxScale = GameSettings::get().sfxScale();
+    if (coinSound)  coinSound->setVolume(100.f * sfxScale);
+    if (jumpSound)  jumpSound->setVolume(100.f * sfxScale);
+    if (crackSound) crackSound->setVolume(100.f * sfxScale);
+    if (deathSound) deathSound->setVolume(100.f * sfxScale);
+
     return true;//everything loaded successfully
 }
 //GAME LOOP
 bool Game::run()
 {
     clock.restart();
+    sf::Clock fpsClock;
 
     while (window.isOpen())
     {
         float dt = clock.restart().asSeconds();
+        SettingsFX::tick(fpsClock.restart().asSeconds());
 
         const float maxDt = 1.f / 30.f;
         if (dt > maxDt) dt = maxDt;
@@ -473,6 +485,7 @@ void Game::render()
 
     window.setView(view);
 
+    SettingsFX::draw(window);
     window.display();
 }
 

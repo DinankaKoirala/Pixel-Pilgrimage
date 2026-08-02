@@ -1,6 +1,7 @@
 #include "Game.hpp"
 #include "Constants.hpp"
 #include "runLevel4.h"
+#include "GameSettings.h"
 #include <sstream>
 #include <algorithm>
 #include <cmath>
@@ -14,8 +15,11 @@ Game::Game(sf::RenderWindow& window)
     , m_introSpeed(0.35f)
     , m_deathScreen((float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
 {
-    m_window.create(sf::VideoMode({Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT}), "Rescue the Princess");
+    const GameSettings& settings = GameSettings::get();
+    m_window.create(settings.windowVideoModeFor(Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT),
+                    "Rescue the Princess", settings.windowState());
     m_window.setFramerateLimit(60);
+    applyLetterboxView(m_window, (float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT);
 
     if (m_backgroundTexture.loadFromFile("../src/level-3/assets/background.png")) {
         m_backgroundSprite.emplace(m_backgroundTexture);
@@ -49,8 +53,10 @@ Game::Game(sf::RenderWindow& window)
 
 bool Game::run() {
     sf::Clock clock;
+    sf::Clock fpsClock;
     while (m_window.isOpen()) {
         float dt = clock.restart().asSeconds();
+        SettingsFX::tick(fpsClock.restart().asSeconds());
         processEvents();
         update(dt);
         render();
@@ -238,6 +244,7 @@ void Game::render() {
         }
     }
 
+    SettingsFX::draw(m_window);
     m_window.display();
 }
 

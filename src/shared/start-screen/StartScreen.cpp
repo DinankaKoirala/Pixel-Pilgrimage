@@ -1,4 +1,5 @@
 #include "StartScreen.h"
+#include "GameSettings.h"
 #include <iostream>
 
 StartScreen::StartScreen(float width, float height, const std::string& assetsPath)
@@ -42,9 +43,14 @@ StartScreen::StartScreen(float width, float height, const std::string& assetsPat
 StartScreenResult StartScreen::run(sf::RenderWindow& window)
 {
     showingSettings = false;
+    bool appliedFullscreen = GameSettings::get().fullscreen;
+    sf::Clock fpsClock;
+
+    applyMenuView(window);
 
     while (window.isOpen())
     {
+        SettingsFX::tick(fpsClock.restart().asSeconds());
         sf::Vector2f mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
         while (const std::optional event = window.pollEvent())
@@ -59,7 +65,7 @@ StartScreenResult StartScreen::run(sf::RenderWindow& window)
             {
                 if (key->code == sf::Keyboard::Key::Escape)
                 {
-                    if (showingSettings) { showingSettings = false; continue; }
+                    if (showingSettings) { showingSettings = false; settings->visible = false; continue; }
                 }
             }
 
@@ -72,6 +78,16 @@ StartScreenResult StartScreen::run(sf::RenderWindow& window)
                 if (showingSettings)
                 {
                     settings->handleClick(clickPos);
+                    if (!settings->visible) showingSettings = false;
+
+                    bool fs = GameSettings::get().fullscreen;
+                    if (fs != appliedFullscreen) {
+                        appliedFullscreen = fs;
+                        window.create(GameSettings::get().windowVideoMode(),
+                                      "Pixel Pilgrimage", GameSettings::get().windowState());
+                        window.setFramerateLimit(60);
+                        applyMenuView(window);
+                    }
                     continue;
                 }
 
@@ -98,6 +114,7 @@ StartScreenResult StartScreen::run(sf::RenderWindow& window)
             drawStartMenu(window, mouse);
         }
 
+        SettingsFX::draw(window);
         window.display();
     }
 
@@ -125,7 +142,7 @@ StartScreenResult StartScreen::handleStartMenuClick(sf::Vector2f mouse)
     if (btnExit->contains(mouse))  return StartScreenResult::Exit;
 
     sf::FloatRect gearBounds = gearIcon.getGlobalBounds();
-    if (gearBounds.contains(mouse)) { showingSettings = true; return StartScreenResult::None; }
+    if (gearBounds.contains(mouse)) { showingSettings = true; settings->visible = true; return StartScreenResult::None; }
 
     return StartScreenResult::None;
 }

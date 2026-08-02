@@ -66,7 +66,7 @@ void Ground::draw(sf::RenderWindow&w){
 Tree::Tree(float sx,float sc):x(sx),scale(sc){}
 void Tree::update(float dt,float spd){x-=spd*0.38f*dt; if(x<-100)x=SW+80.f;}
 void Tree::draw(sf::RenderWindow&w){
-    float base=groundYat(x);
+    float base=groundYat(x)-12.f;
     float s=scale;
     sf::Color dk (0,  72, 28);
     sf::Color md (0,  98, 38);
@@ -238,7 +238,23 @@ void Giant::drawGiant(sf::RenderWindow&w,float cx,float base,const sf::RenderSta
     R(w,cx-10*sc,base-152*sc,8*sc,6*sc,blight,st); R(w,cx+2*sc,base-152*sc,8*sc,6*sc,blight,st);}
 
 // ── PLAYER ────────────────────────────────────────────────────────────────────
-Player::Player(){y=groundYat(PX);}
+Player::Player(){
+    y=groundYat(PX);
+    texLoaded =
+        runTex.loadFromFile("../src/level-2/assets/playerrun.png") &&
+        jumpTex.loadFromFile("../src/level-2/assets/player3.png") &&
+        idleTex.loadFromFile("../src/level-2/assets/p.png");
+    if (texLoaded) {
+        applyPose(runTex);
+    }
+}
+void Player::applyPose(const sf::Texture& tex){
+    sprite.setTexture(tex, true);
+    sf::FloatRect b = sprite.getLocalBounds();
+    sprite.setOrigin({b.size.x / 2.f, b.size.y});
+    float sc = 30.f / b.size.y;
+    sprite.setScale({sc, sc});
+}
 void Player::setYetiMode(bool on){
     yetiMode=on;
     int maxJ=yetiMode?3:2;
@@ -257,6 +273,17 @@ void Player::update(float dt){
 void Player::hit(){flashT=0.55f;}
 void Player::draw(sf::RenderWindow&w){
     bool fl=flashT>0&&(int)(flashT*12)%2==0;
+    if (texLoaded) {
+        if (jumpsLeft < maxJumps())
+            applyPose(vy < 0.f ? jumpTex : idleTex);
+        else
+            applyPose(runTex);
+        R(w,PX-8.f,y+2,16.f,3,{0,0,0,40});
+        sprite.setColor(fl ? sf::Color(255,80,80) : sf::Color::White);
+        sprite.setPosition({PX,y});
+        w.draw(sprite);
+        return;
+    }
     sf::Color body=fl?sf::Color(255,80,80):sf::Color(60,100,170);
     sf::Color hat =fl?sf::Color(255,80,80):sf::Color(180,32,32);
     float bx=PX-7.f,by=y-28.f;

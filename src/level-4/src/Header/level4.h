@@ -145,6 +145,11 @@ public:
     void hit();
     void draw(sf::RenderWindow& w);
     sf::FloatRect bounds()const;
+private:
+    void applyPose(const sf::Texture& tex);
+    sf::Texture runTex, jumpTex, idleTex;
+    sf::Sprite sprite{runTex};
+    bool texLoaded=false;
 };
 
 // ── HUD ───────────────────────────────────────────────────────────────────────

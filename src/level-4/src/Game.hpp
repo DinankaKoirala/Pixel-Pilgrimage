@@ -66,6 +66,8 @@ private:
     float giantTimer;
     float distTimer;
 
+    float tilemapScroll = 0;
+
     static constexpr float WIN_SCORE = 500.f;
 };
 

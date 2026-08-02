@@ -1,4 +1,5 @@
 #include "Header/audioManager.h"
+#include "GameSettings.h"
 #include <iostream>
 
 void AudioManager::loadSFX(const std::string& name, const std::string& path){
@@ -17,7 +18,7 @@ void AudioManager::playSFX(const std::string& name){
         std::cerr<<name<<" doesnt exist"<<std::endl;
         return;
     }
-    playing->second->setVolume(100);
+    playing->second->setVolume(100 * GameSettings::get().sfxScale());
     playing->second->play();
 }
 
@@ -27,7 +28,7 @@ void AudioManager::loadMusic(const std::string& path){
         return;
     }
     music.setLooping(true);
-    music.setVolume(50); 
+    music.setVolume(50 * GameSettings::get().musicScale()); 
 }
 
 void AudioManager::playMusic(){
@@ -52,7 +53,7 @@ void AudioManager::playSFXIfNotPlaying(const std::string& name){
         return;
     }
     else {
-        playing->second->setVolume(100);
+        playing->second->setVolume(100 * GameSettings::get().sfxScale());
         playing->second->play();
     }
 }

@@ -65,7 +65,7 @@ private:
     bool gameOver = false;
     bool gameWon = false;
     int crackedPlatformsPassed = 0;
-    static constexpr int crackedPlatformsToWin = 10;
+    int crackedPlatformsToWin = 10;
     float cameraX = 0.f;
 
     // --- scoring / coins ---

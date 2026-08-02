@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "GameSettings.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -10,10 +11,10 @@ namespace L4 {
 Game4::Game4(sf::RenderWindow& win)
     : window(win)
     , deathScreen(SW, SH, "../src/level-1/assets/fonts/Vipnagorgialla Bd.otf")
-    , gameSpeed(BASE_SPEED)
+    , gameSpeed(BASE_SPEED * GameSettings::get().difficultyMultiplier())
     , score(0)
     , coinCount(0)
-    , lives(3)
+    , lives(GameSettings::get().livesForDifficulty(3))
     , gameOver(false)
     , gameWon(false)
     , deathHandled(false)
@@ -23,8 +24,11 @@ Game4::Game4(sf::RenderWindow& win)
     , giantTimer(0)
     , distTimer(0)
 {
-    window.create(sf::VideoMode({(unsigned)SW, (unsigned)SH}), "Winter Journey");
+    const GameSettings& settings = GameSettings::get();
+    window.create(settings.windowVideoModeFor((unsigned)SW, (unsigned)SH),
+                  "Winter Journey", settings.windowState());
     window.setFramerateLimit(60);
+    applyLetterboxView(window, SW, SH);
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
     (void)tilemapTex.loadFromFile("../src/level-4/assets/maps/sprite-level4.png");
@@ -44,11 +48,21 @@ void Game4::loadSounds() {
     if (gameOverBuffer.loadFromFile("../src/level-4/assets/gameover.mp3")) gameOverSound.emplace(gameOverBuffer);
     if (deerBuffer.loadFromFile("../src/level-4/assets/deer.mp3")) deerSound.emplace(deerBuffer);
     if (yetiBuffer.loadFromFile("../src/level-4/assets/yeti.mp3")) yetiSound.emplace(yetiBuffer);
+
+    float sfxScale = GameSettings::get().sfxScale();
+    if (jumpSound)     jumpSound->setVolume(100.f * sfxScale);
+    if (coinSound)     coinSound->setVolume(100.f * sfxScale);
+    if (heartSound)    heartSound->setVolume(100.f * sfxScale);
+    if (gameOverSound) gameOverSound->setVolume(100.f * sfxScale);
+    if (deerSound)     deerSound->setVolume(100.f * sfxScale);
+    if (yetiSound)     yetiSound->setVolume(100.f * sfxScale);
 }
 
 bool Game4::run() {
+    sf::Clock fpsClock;
     while (window.isOpen()) {
         float dt = clock.restart().asSeconds();
+        SettingsFX::tick(fpsClock.restart().asSeconds());
         if (dt > 1.f / 30.f) dt = 1.f / 30.f;
 
         processEvents();
@@ -83,7 +97,7 @@ void Game4::processEvents() {
             }
             if (key->code == sf::Keyboard::Key::R && gameOver) {
                 player = Player();
-                lives = 3;
+                lives = GameSettings::get().livesForDifficulty(3);
                 score = 0;
                 coinCount = 0;
                 gameOver = false;
@@ -92,8 +106,9 @@ void Game4::processEvents() {
                 rocks.clear();
                 deerEnemies.clear();
                 giants.clear();
-                gameSpeed = BASE_SPEED;
+                gameSpeed = BASE_SPEED * GameSettings::get().difficultyMultiplier();
                 spawnTimer = treeTimer = deerTimer = giantTimer = distTimer = 0;
+                tilemapScroll = 0;
             }
             if (key->code == sf::Keyboard::Key::Escape) {
                 window.close();
@@ -107,7 +122,7 @@ void Game4::processEvents() {
                     window.close();
                 } else if (result == DeathScreenResult::Restart) {
                     player = Player();
-                    lives = 3;
+                    lives = GameSettings::get().livesForDifficulty(3);
                     score = 0;
                     coinCount = 0;
                     gameOver = false;
@@ -116,8 +131,9 @@ void Game4::processEvents() {
                     rocks.clear();
                     deerEnemies.clear();
                     giants.clear();
-                    gameSpeed = BASE_SPEED;
+                    gameSpeed = BASE_SPEED * GameSettings::get().difficultyMultiplier();
                     spawnTimer = treeTimer = deerTimer = giantTimer = distTimer = 0;
+                    tilemapScroll = 0;
                 }
             }
         }
@@ -134,8 +150,11 @@ void Game4::update(float dt) {
     score += gameSpeed * dt * 0.1f;
 
     sky.update(dt);
-    snowfall.update(dt);
+    if (GameSettings::get().particles) snowfall.update(dt);
     ground.update(dt, gameSpeed);
+
+    tilemapScroll += gameSpeed * dt;
+    if (tilemapScroll >= 3840.f) tilemapScroll -= 3840.f;
 
     for (auto& t : trees) t.update(dt, gameSpeed);
 
@@ -290,18 +309,40 @@ void Game4::checkCollisions() {
 void Game4::render() {
     window.clear();
     sky.draw(window);
-    snowfall.draw(window);
+    if (GameSettings::get().particles) snowfall.draw(window);
 
     {
-        sf::Sprite tilemapSpr{tilemapTex};
-        tilemapSpr.setScale({32.f, 32.f});
-        float mapX = -std::fmod(ground.offset, 3840.f);
-        tilemapSpr.setPosition({mapX, 0.f});
-        window.draw(tilemapSpr);
-        if (mapX < 0.f) {
-            tilemapSpr.setPosition({mapX + 3840.f, 0.f});
-            window.draw(tilemapSpr);
+        // Drape the flat tilemap art over the slope: each 32px column is
+        // shifted vertically so the art's grass band top (texture row 12)
+        // sits exactly on the sloped surface. The art trees then follow the
+        // incline instead of floating on a flat strip.
+        sf::VertexArray va(sf::PrimitiveType::Triangles);
+        const float texW = static_cast<float>(tilemapTex.getSize().x);
+        const float texH = static_cast<float>(tilemapTex.getSize().y);
+        const float mapX = -std::fmod(tilemapScroll, texW * 32.f);
+        const float bandLocal = 12.f; // grass line = top of the flat band
+        for (unsigned col = 0; col < tilemapTex.getSize().x; ++col) {
+            float x0 = mapX + static_cast<float>(col) * 32.f;
+            float x1 = x0 + 32.f;
+            if (x1 < 0.f || x0 > SW) continue;
+            float off0 = groundYat(x0) - bandLocal * 32.f;
+            float off1 = groundYat(x1) - bandLocal * 32.f;
+            float u0 = static_cast<float>(col);
+            float u1 = static_cast<float>(col + 1);
+            sf::Vertex v0{{x0, off0}, sf::Color::White, {u0, 0.f}};
+            sf::Vertex v1{{x1, off1}, sf::Color::White, {u1, 0.f}};
+            sf::Vertex v2{{x1, off1 + texH * 32.f}, sf::Color::White, {u1, texH}};
+            sf::Vertex v3{{x0, off0 + texH * 32.f}, sf::Color::White, {u0, texH}};
+            va.append(v0);
+            va.append(v1);
+            va.append(v2);
+            va.append(v0);
+            va.append(v2);
+            va.append(v3);
         }
+        sf::RenderStates states;
+        states.texture = &tilemapTex;
+        window.draw(va, states);
     }
 
     ground.draw(window);
@@ -319,6 +360,7 @@ void Game4::render() {
         deathScreen.draw(window);
     }
 
+    SettingsFX::draw(window);
     window.display();
 }
 

@@ -16,6 +16,8 @@
 #include "death-screen/DeathScreen.h"
 #include "start-screen/StartScreen.h"
 #include "map/MapScreen.h"
+#include "GameSettings.h"
+#include "MenuMusic.h"
 
 static bool runLevel1(sf::RenderWindow& window)
 {
@@ -68,11 +70,13 @@ static bool runLevel1(sf::RenderWindow& window)
 
     bool playerAlive = true;
     sf::Clock clock;
+    sf::Clock fpsClock;
     sf::View camera(sf::FloatRect({0.f, 0.f}, {1280.f, 720.f}));
     std::vector<sf::Vector2f> enemySpawns = tilemap.getEnemySpawnPoints();
     std::vector<Enemy> enemies;
     for (const sf::Vector2f& enemyPos : enemySpawns) {
         Enemy enemy(enemyPos.x, enemyPos.y);
+        enemy.setSpeed(20.f * GameSettings::get().difficultyMultiplier());
         enemies.push_back(enemy);
     }
     for (Enemy& enemy : enemies) {
@@ -186,6 +190,7 @@ static bool runLevel1(sf::RenderWindow& window)
         }
 
         float dt = clock.restart().asSeconds();
+        SettingsFX::tick(fpsClock.restart().asSeconds());
 
         if (!levelComplete && playerAlive) {
             player.handleInput();
@@ -327,6 +332,7 @@ static bool runLevel1(sf::RenderWindow& window)
             }
         }
 
+        SettingsFX::draw(window);
         window.display();
     }
 
@@ -335,9 +341,11 @@ static bool runLevel1(sf::RenderWindow& window)
 
 int main()
 {
+    GameSettings& settings = GameSettings::get();
     sf::RenderWindow window(
-        sf::VideoMode({ 1280u, 720u }),
-        "Pixel Pilgrimage"
+        settings.windowVideoMode(),
+        "Pixel Pilgrimage",
+        settings.windowState()
     );
     window.setFramerateLimit(60);
 
@@ -346,11 +354,14 @@ int main()
 
     while (window.isOpen())
     {
+        MenuMusic::play();
+
         StartScreenResult sr = startScreen.run(window);
         if (sr == StartScreenResult::Exit) break;
 
         if (sr == StartScreenResult::StartGame)
         {
+            MenuMusic::stop();
             bool levelComplete = runLevel1(window);
 
             if (levelComplete)
@@ -358,7 +369,7 @@ int main()
                 runLevel2(window);
             }
 
-            window.create(sf::VideoMode({ 1280u, 720u }), "Pixel Pilgrimage");
+            window.create(settings.windowVideoMode(), "Pixel Pilgrimage", settings.windowState());
             window.setFramerateLimit(60);
         }
         else if (sr == StartScreenResult::ShowMap)
@@ -368,26 +379,31 @@ int main()
 
             if (mr == MapScreenResult::Level1)
             {
+                MenuMusic::stop();
                 runLevel1(window);
             }
             else if (mr == MapScreenResult::Level2)
             {
+                MenuMusic::stop();
                 runLevel2(window);
             }
             else if (mr == MapScreenResult::Level3)
             {
+                MenuMusic::stop();
                 runLevel3(window);
             }
             else if (mr == MapScreenResult::Level4)
             {
+                MenuMusic::stop();
                 runLevel4(window);
             }
             else if (mr == MapScreenResult::Level5)
             {
+                MenuMusic::stop();
                 runLevel5(window);
             }
 
-            window.create(sf::VideoMode({ 1280u, 720u }), "Pixel Pilgrimage");
+            window.create(settings.windowVideoMode(), "Pixel Pilgrimage", settings.windowState());
             window.setFramerateLimit(60);
         }
     }

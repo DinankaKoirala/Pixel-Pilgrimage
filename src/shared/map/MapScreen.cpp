@@ -1,4 +1,5 @@
 #include "MapScreen.h"
+#include "GameSettings.h"
 #include <iostream>
 
 void MapScreen::drawLevelMarker(sf::RenderWindow& window, sf::FloatRect area, const std::string& label, sf::Vector2f mouse)
@@ -62,10 +63,15 @@ MapScreen::MapScreen(float width, float height, const std::string& assetsPath)
 MapScreenResult MapScreen::run(sf::RenderWindow& window)
 {
     showingSettings = false;
+    bool appliedFullscreen = GameSettings::get().fullscreen;
+    sf::Clock fpsClock;
+
+    applyMenuView(window);
 
     while (window.isOpen())
     {
-        sf::Vector2f mouse = sf::Vector2f(sf::Mouse::getPosition(window));
+        SettingsFX::tick(fpsClock.restart().asSeconds());
+        sf::Vector2f mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
         bool pressing = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
 
         while (const std::optional event = window.pollEvent())
@@ -80,7 +86,7 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
             {
                 if (key->code == sf::Keyboard::Key::Escape)
                 {
-                    if (showingSettings) { showingSettings = false; continue; }
+                    if (showingSettings) { showingSettings = false; settings->visible = false; continue; }
                     return MapScreenResult::BackToMenu;
                 }
             }
@@ -89,12 +95,21 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
             {
                 if (mbp->button != sf::Mouse::Button::Left) continue;
 
-                sf::Vector2f mp((float)mbp->position.x, (float)mbp->position.y);
+                sf::Vector2f mp = window.mapPixelToCoords(mbp->position);
 
                 if (showingSettings)
                 {
                     settings->handleClick(mp);
                     if (!settings->visible) showingSettings = false;
+
+                    bool fs = GameSettings::get().fullscreen;
+                    if (fs != appliedFullscreen) {
+                        appliedFullscreen = fs;
+                        window.create(GameSettings::get().windowVideoMode(),
+                                      "Pixel Pilgrimage", GameSettings::get().windowState());
+                        window.setFramerateLimit(60);
+                        applyMenuView(window);
+                    }
                     continue;
                 }
 
@@ -104,7 +119,7 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
                 }
 
                 sf::FloatRect gearBounds = gearIcon.getGlobalBounds();
-                if (gearBounds.contains(mp)) { showingSettings = true; continue; }
+                if (gearBounds.contains(mp)) { showingSettings = true; settings->visible = true; continue; }
             }
         }
 
@@ -113,7 +128,10 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
 
         window.clear();
 
-        if (mapSprite) window.draw(*mapSprite);
+        if (mapSprite)
+        {
+            window.draw(*mapSprite);
+        }
 
         if (showingSettings)
         {
@@ -127,6 +145,7 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
             window.draw(gearIcon);
         }
 
+        SettingsFX::draw(window);
         window.display();
     }
 

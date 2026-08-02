@@ -23,6 +23,9 @@ Game4::Game4()
     window.setFramerateLimit(60);
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
+    (void)tilemapTex.loadFromFile("../src/level-4/assets/maps/sprite-level4.png");
+    tilemapTex.setSmooth(false);
+
     trees.emplace_back(SW * 0.3f, 1.1f);
     trees.emplace_back(SW * 0.6f, 0.8f);
     trees.emplace_back(SW * 0.9f, 1.0f);
@@ -245,6 +248,19 @@ void Game4::render() {
     window.clear();
     sky.draw(window);
     snowfall.draw(window);
+
+    {
+        sf::Sprite tilemapSpr{tilemapTex};
+        tilemapSpr.setScale({32.f, 32.f});
+        float mapX = -std::fmod(ground.offset, 3840.f);
+        tilemapSpr.setPosition({mapX, 0.f});
+        window.draw(tilemapSpr);
+        if (mapX < 0.f) {
+            tilemapSpr.setPosition({mapX + 3840.f, 0.f});
+            window.draw(tilemapSpr);
+        }
+    }
+
     ground.draw(window);
 
     for (auto& t : trees) t.draw(window);

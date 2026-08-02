@@ -21,6 +21,7 @@ private:
 
     Sky sky;
     Snowfall snowfall;
+    sf::Texture tilemapTex;
     Ground ground;
     std::vector<Tree> trees;
     std::vector<Coin> coins;

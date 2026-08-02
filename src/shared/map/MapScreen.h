@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <array>
 #include <memory>
 #include <optional>
 #include "../UIWidgets.h"
@@ -22,7 +23,10 @@ public:
     MapScreenResult run(sf::RenderWindow& window);
 
 private:
-    bool pointInRect(sf::Vector2f p, float rx, float ry, float rw, float rh);
+    static constexpr int LEVEL_COUNT = 5;
+    static constexpr float AREA_W = 160.f;
+    static constexpr float AREA_H = 120.f;
+
     void drawLevelMarker(sf::RenderWindow& window, sf::FloatRect area, const std::string& label, sf::Vector2f mouse);
 
     float width, height;
@@ -32,11 +36,7 @@ private:
     sf::Texture mapTex;
     std::optional<sf::Sprite> mapSprite;
 
-    sf::FloatRect level1Area;
-    sf::FloatRect level2Area;
-    sf::FloatRect level3Area;
-    sf::FloatRect level4Area;
-    sf::FloatRect level5Area;
+    std::array<sf::FloatRect, LEVEL_COUNT> levelAreas;
 
     sf::CircleShape gearIcon;
     bool showingSettings = false;

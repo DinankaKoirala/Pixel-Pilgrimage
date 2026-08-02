@@ -132,7 +132,7 @@ add_custom_command(TARGET PixelPilgrimage_level5 POST_BUILD
     "$<TARGET_FILE_DIR:PixelPilgrimage_level5>/level-5/assets"
 )
 
-if (WIN32)
+if (WIN32 AND SFML_FOUND)
     add_custom_command(TARGET PixelPilgrimage_level5 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_RUNTIME_DLLS:PixelPilgrimage_level5>

@@ -1,34 +1,30 @@
 #include "MapScreen.h"
 #include <iostream>
 
-bool MapScreen::pointInRect(sf::Vector2f p, float rx, float ry, float rw, float rh)
-{
-    return p.x >= rx && p.x <= rx + rw && p.y >= ry && p.y <= ry + rh;
-}
-
 void MapScreen::drawLevelMarker(sf::RenderWindow& window, sf::FloatRect area, const std::string& label, sf::Vector2f mouse)
 {
     bool hovered = area.contains(mouse);
-    sf::Color fill = hovered ? sf::Color(255, 255, 255, 80) : sf::Color(255, 255, 255, 30);
-    sf::Color outline = hovered ? sf::Color(255, 215, 0) : sf::Color(255, 255, 255, 0);
 
-    sf::RectangleShape marker(sf::Vector2f(area.size.x, area.size.y));
-    marker.setPosition(sf::Vector2f(area.position.x, area.position.y));
-    marker.setFillColor(fill);
-    marker.setOutlineColor(outline);
-    marker.setOutlineThickness(hovered ? 3.f : 0.f);
-    window.draw(marker);
+    sf::RectangleShape bg(sf::Vector2f(area.size.x, area.size.y));
+    bg.setPosition(sf::Vector2f(area.position.x, area.position.y));
+    bg.setFillColor(hovered ? sf::Color(0, 0, 0, 160) : sf::Color(0, 0, 0, 100));
+    bg.setOutlineColor(hovered ? sf::Color(255, 215, 0) : sf::Color(255, 255, 255, 100));
+    bg.setOutlineThickness(hovered ? 3.f : 1.f);
+    window.draw(bg);
 
-    if (hovered) {
-        sf::Text tooltip(font, label, 20);
-        tooltip.setFillColor(sf::Color::White);
-        tooltip.setOutlineColor(sf::Color::Black);
-        tooltip.setOutlineThickness(2.f);
-        sf::FloatRect tb = tooltip.getLocalBounds();
-        tooltip.setOrigin({ tb.size.x / 2.f, tb.size.y / 2.f });
-        tooltip.setPosition({ area.position.x + area.size.x / 2.f, area.position.y - 25.f });
-        window.draw(tooltip);
-    }
+    sf::Text labelText(font, label, hovered ? 22 : 16);
+    labelText.setFillColor(hovered ? sf::Color(255, 215, 0) : sf::Color::White);
+    labelText.setOutlineColor(sf::Color::Black);
+    labelText.setOutlineThickness(2.f);
+    sf::FloatRect lb = labelText.getLocalBounds();
+    labelText.setOrigin({ lb.size.x / 2.f, lb.size.y / 2.f });
+    labelText.setPosition({ area.position.x + area.size.x / 2.f, area.position.y + area.size.y / 2.f });
+    window.draw(labelText);
+}
+
+static sf::FloatRect centeredAt(float cx, float cy, float w, float h)
+{
+    return sf::FloatRect({ cx - w / 2.f, cy - h / 2.f }, { w, h });
 }
 
 MapScreen::MapScreen(float width, float height, const std::string& assetsPath)
@@ -48,11 +44,11 @@ MapScreen::MapScreen(float width, float height, const std::string& assetsPath)
         }
     }
 
-    level1Area = sf::FloatRect({ 100.f, 200.f }, { 300.f, 200.f });
-    level2Area = sf::FloatRect({ 500.f, 300.f }, { 300.f, 200.f });
-    level3Area = sf::FloatRect({ 850.f, 150.f }, { 300.f, 200.f });
-    level4Area = sf::FloatRect({ 900.f, 400.f }, { 300.f, 200.f });
-    level5Area = sf::FloatRect({ 100.f, 480.f }, { 300.f, 200.f });
+    levelAreas[0] = centeredAt(250.f, 300.f, AREA_W, AREA_H);
+    levelAreas[1] = centeredAt(650.f, 400.f, AREA_W, AREA_H);
+    levelAreas[2] = centeredAt(1000.f, 250.f, AREA_W, AREA_H);
+    levelAreas[3] = centeredAt(1050.f, 500.f, AREA_W, AREA_H);
+    levelAreas[4] = centeredAt(250.f, 580.f, AREA_W, AREA_H);
 
     gearIcon.setRadius(22.f);
     gearIcon.setPosition({ width - 60.f, 25.f });
@@ -102,11 +98,10 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
                     continue;
                 }
 
-                if (level1Area.contains(mp)) return MapScreenResult::Level1;
-                        if (level2Area.contains(mp)) return MapScreenResult::Level2;
-                        if (level3Area.contains(mp)) return MapScreenResult::Level3;
-                        if (level4Area.contains(mp)) return MapScreenResult::Level4;
-                        if (level5Area.contains(mp)) return MapScreenResult::Level5;
+                for (int i = 0; i < LEVEL_COUNT; i++) {
+                    if (levelAreas[i].contains(mp))
+                        return static_cast<MapScreenResult>(static_cast<int>(MapScreenResult::Level1) + i);
+                }
 
                 sf::FloatRect gearBounds = gearIcon.getGlobalBounds();
                 if (gearBounds.contains(mp)) { showingSettings = true; continue; }
@@ -126,11 +121,9 @@ MapScreenResult MapScreen::run(sf::RenderWindow& window)
         }
         else
         {
-            drawLevelMarker(window, level1Area, "LEVEL 1", mouse);
-            drawLevelMarker(window, level2Area, "LEVEL 2", mouse);
-            drawLevelMarker(window, level3Area, "LEVEL 3", mouse);
-            drawLevelMarker(window, level4Area, "LEVEL 4", mouse);
-            drawLevelMarker(window, level5Area, "LEVEL 5", mouse);
+            for (int i = 0; i < LEVEL_COUNT; i++) {
+                drawLevelMarker(window, levelAreas[i], "LEVEL " + std::to_string(i + 1), mouse);
+            }
             window.draw(gearIcon);
         }
 

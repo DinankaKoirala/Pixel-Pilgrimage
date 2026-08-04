@@ -92,7 +92,7 @@ void Player::update(float dt, const std::vector<sf::FloatRect>& solids) {
     float scaleX = 1.f;
     float scaleY = 1.f;
 
-    if (state == PlayerState::Idle) {
+    if (state == PlayerState::Idle || state == PlayerState::Walk) {
         sprite.setTexture(idleTexture, true);
         scaleX = 32.f / 293.f;
         scaleY = 48.f / 428.f;

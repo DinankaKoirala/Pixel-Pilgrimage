@@ -24,6 +24,8 @@ static bool runLevel1(sf::RenderWindow& window)
     unsigned int width = 1280;
     unsigned int height = 720;
 
+    Coin::coinsCollected = 0;
+
     bool levelComplete = false;
 
     AudioManager audio;
